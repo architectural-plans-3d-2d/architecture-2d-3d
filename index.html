@@ -3,229 +3,278 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="Interactive 3D model of Woven Earth — a terracotta spool courtyard screen.">
+<meta name="description" content="Interactive 3D model of Woven Earth — a terracotta spool courtyard screen with a working privacy lever and a recirculating evaporative-cooling water system.">
 <title>Woven Earth — 3D</title>
 <style>
-  /* Layout: full-bleed 3D stage with a floating control card, bottom-left on desktop, stacked on phones */
   :root{
-    --bg:#F3EEE7; --panel:#FBF8F3; --fg:#2B2320; --muted:#7A6E63;
-    --line:#E0D6C8; --accent:#C06B3C; --accent-ink:#8F4A26;
-    --font-ui:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
-  }
-  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
-    --bg:#1A1613; --panel:#241E19; --fg:#EFE7DD; --muted:#AC9E8F;
-    --line:#3A312A; --accent:#D8824E; --accent-ink:#E7A074; color-scheme:dark;
-  }}
-  :root[data-theme="dark"]{
-    --bg:#1A1613; --panel:#241E19; --fg:#EFE7DD; --muted:#AC9E8F;
-    --line:#3A312A; --accent:#D8824E; --accent-ink:#E7A074; color-scheme:dark;
+    --panel:#20190f; --panelLine:#3a2f20; --ink:#f3ead9; --muted:#b6a88f; --accent:#c9733f; --water:#3f9bd0;
+    --font:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
   }
   html,body{height:100%}
-  body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--font-ui);overflow:hidden}
+  body{margin:0;background:#0f0d0a;color:var(--ink);font-family:var(--font);overflow:hidden}
   #stage{position:absolute;inset:0}
   canvas{display:block;touch-action:none}
-  .card{
-    position:absolute;left:16px;bottom:16px;width:min(300px,calc(100% - 32px));
-    background:var(--panel);border:1px solid var(--line);border-radius:14px;
-    padding:14px 16px;box-sizing:border-box;z-index:5;
-  }
-  .card h1{margin:0 0 2px;font-size:16px;font-weight:500;letter-spacing:.2px}
-  .card p.sub{margin:0 0 12px;font-size:12px;color:var(--muted);line-height:1.5}
-  .row{display:flex;align-items:center;gap:10px;margin:9px 0}
-  .row label{flex:0 0 78px;font-size:12px;color:var(--muted)}
-  .row input[type=range]{flex:1;accent-color:var(--accent);min-width:0}
-  .row .val{flex:0 0 34px;text-align:right;font-size:12px;font-variant-numeric:tabular-nums}
-  .toggles{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
-  .toggles button{
-    flex:1;min-width:84px;font-family:inherit;font-size:12px;cursor:pointer;
-    padding:7px 8px;border-radius:9px;border:1px solid var(--line);
-    background:transparent;color:var(--fg);transition:.15s;
-  }
-  .toggles button[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:#fff}
-  .hint{position:absolute;top:16px;left:50%;transform:translateX(-50%);z-index:5;
-    font-size:11px;color:var(--muted);background:var(--panel);
-    border:1px solid var(--line);border-radius:999px;padding:5px 12px;white-space:nowrap}
+  .title{position:absolute;top:14px;left:16px;z-index:5;pointer-events:none}
+  .title h1{margin:0;font-size:17px;font-weight:600;letter-spacing:.2px}
+  .title p{margin:2px 0 0;font-size:12px;color:var(--muted)}
+  .hint{position:absolute;top:16px;left:50%;transform:translateX(-50%);z-index:5;font-size:11px;color:var(--muted);
+    background:rgba(20,16,10,.72);border:1px solid var(--panelLine);border-radius:999px;padding:5px 12px;white-space:nowrap}
+  .card{position:absolute;right:16px;bottom:16px;width:min(300px,calc(100% - 32px));z-index:6;
+    background:rgba(20,16,10,.82);backdrop-filter:blur(4px);border:1px solid var(--panelLine);border-radius:14px;padding:14px 16px}
+  .card h2{margin:0 0 2px;font-size:14px;font-weight:600}
+  .card .sub{margin:0 0 12px;font-size:11.5px;color:var(--muted);line-height:1.5}
+  .btn{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;font-family:inherit;font-size:13px;
+    cursor:pointer;padding:9px 12px;border-radius:10px;border:1px solid var(--panelLine);background:transparent;color:var(--ink);
+    transition:.15s;margin-top:8px}
+  .btn:hover{border-color:#5a4a33}
+  .btn .state{font-size:11px;color:var(--muted)}
+  .btn[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:#1a1008}
+  .btn[aria-pressed=true] .state{color:#3a2206}
+  .btn.water[aria-pressed=true]{background:var(--water);border-color:var(--water);color:#06222f}
+  .btn.water[aria-pressed=true] .state{color:#063040}
+  .meters{margin-top:12px;display:flex;flex-direction:column;gap:7px}
+  .meter{font-size:11px;color:var(--muted)}
+  .meter .row{display:flex;justify-content:space-between;margin-bottom:3px}
+  .bar{height:6px;border-radius:4px;background:#2a2114;overflow:hidden}
+  .bar i{display:block;height:100%;width:0;border-radius:4px;transition:width .25s}
+  .ghost{margin-top:10px;font-size:11px;color:var(--muted);text-align:center;cursor:pointer;text-decoration:underline;text-underline-offset:2px}
+  #err{position:absolute;inset:0;display:none;place-items:center;z-index:9;background:#140f0a;color:#f0a;font:13px/1.5 monospace;padding:24px;text-align:center}
 </style>
 </head>
 <body>
-
-
 <div id="stage"></div>
-<div class="hint">Drag to orbit · scroll to zoom</div>
+<div class="title"><h1>Woven Earth</h1><p>terracotta courtyard screen · privacy lever + cooling water loop</p></div>
+<div class="hint">drag to orbit · scroll to zoom · click the lever on the frame</div>
 <div class="card">
-  <h1>Terracotta spool screen</h1>
-  <p class="sub">One fired-clay module, threaded on jute and repeated. Turn it around and change the weave.</p>
-  <div class="row"><label for="cols">Columns</label><input id="cols" type="range" min="3" max="9" value="6"><span class="val" id="colsV">6</span></div>
-  <div class="row"><label for="rows">Rows</label><input id="rows" type="range" min="3" max="11" value="8"><span class="val" id="rowsV">8</span></div>
-  <div class="row"><label for="offset">Offset</label><input id="offset" type="range" min="0" max="100" value="50"><span class="val" id="offsetV">50%</span></div>
-  <div class="toggles">
-    <button id="tFrame" aria-pressed="true">Frame</button>
-    <button id="tCord" aria-pressed="true">Cords</button>
-    <button id="tSpin" aria-pressed="true">Auto-spin</button>
+  <h2>Controls</h2>
+  <p class="sub">Pull the lever to stagger the spools (more privacy, less light). Run the pump to circulate water through the hollow spools and cool the air.</p>
+  <button class="btn" id="lever" aria-pressed="false">Privacy lever <span class="state" id="leverState">released · open</span></button>
+  <button class="btn water" id="pump" aria-pressed="false">Water pump <span class="state" id="pumpState">off</span></button>
+  <div class="meters">
+    <div class="meter"><div class="row"><span>Privacy</span><span id="privV">20%</span></div><div class="bar"><i id="privBar" style="background:var(--accent)"></i></div></div>
+    <div class="meter"><div class="row"><span>Daylight through</span><span id="lightV">80%</span></div><div class="bar"><i id="lightBar" style="background:#e7c15a"></i></div></div>
+    <div class="meter"><div class="row"><span>Air</span><span id="airV">ambient</span></div><div class="bar"><i id="airBar" style="background:var(--water)"></i></div></div>
   </div>
+  <div class="ghost" id="reset">reset view</div>
 </div>
+<div id="err"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 <script>
 (function(){
-  const stage=document.getElementById('stage');
-  const isDark=()=>{const t=document.documentElement.getAttribute('data-theme');
-    return t?t==='dark':matchMedia('(prefers-color-scheme:dark)').matches;};
+  const errBox=document.getElementById('err');
+  function fail(m){errBox.style.display='grid';errBox.textContent='3D failed to load: '+m;}
+  if(!window.THREE){return fail('three.js not available');}
 
-  const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});
+  const stage=document.getElementById('stage');
+  const renderer=new THREE.WebGLRenderer({antialias:true});
   renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+  renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+  renderer.outputEncoding=THREE.sRGBEncoding;
   stage.appendChild(renderer.domElement);
 
   const scene=new THREE.Scene();
-  const camera=new THREE.PerspectiveCamera(42,1,0.1,100);
-  camera.position.set(5.5,1.5,8.5);
+  scene.background=new THREE.Color(0xE7DDC8);
+  scene.fog=new THREE.Fog(0xE7DDC8, 22, 46);
+
+  const camera=new THREE.PerspectiveCamera(42,1,0.1,120);
+  const CAM0=new THREE.Vector3(6.2,3.4,8.6), TGT0=new THREE.Vector3(0,2.1,0);
+  camera.position.copy(CAM0);
 
   const controls=new THREE.OrbitControls(camera,renderer.domElement);
-  controls.enableDamping=true;controls.dampingFactor=0.08;
-  controls.minDistance=4;controls.maxDistance=20;
-  controls.maxPolarAngle=Math.PI*0.92;
+  controls.enableDamping=true; controls.dampingFactor=0.08;
+  controls.autoRotate=false;                 // never revolves on its own
+  controls.minDistance=5; controls.maxDistance=24;
+  controls.maxPolarAngle=Math.PI*0.5;        // stay above the floor
+  controls.target.copy(TGT0);
 
-  // lights
-  const hemi=new THREE.HemisphereLight(0xfff4e6,0x3a2f28,0.85);scene.add(hemi);
-  const key=new THREE.DirectionalLight(0xffffff,0.9);key.position.set(5,9,7);scene.add(key);
-  const fill=new THREE.DirectionalLight(0xffe4c4,0.35);fill.position.set(-6,3,-4);scene.add(fill);
+  // ---------- lights ----------
+  scene.add(new THREE.HemisphereLight(0xfff3e0,0x4b3b2a,0.75));
+  const sun=new THREE.DirectionalLight(0xfff1dc,1.05);
+  sun.position.set(7,11,6); sun.castShadow=true;
+  sun.shadow.mapSize.set(2048,2048);
+  const sc=sun.shadow.camera; sc.near=1; sc.far=40; sc.left=-9; sc.right=9; sc.top=9; sc.bottom=-9;
+  sun.shadow.bias=-0.0004;
+  scene.add(sun);
+  // daylight coming through the screen from behind (dims a little as privacy rises)
+  const backLight=new THREE.DirectionalLight(0xfde9c8,0.5);
+  backLight.position.set(-2,4,-8); scene.add(backLight);
 
-  // ---- geometry: one spool as a solid of revolution (lathe) ----
-  const SP_H=1.0, FL_R=0.42, WA_R=0.19, FL_BAND=0.2;
-  function spoolProfile(){
-    const pts=[];
-    pts.push(new THREE.Vector2(0.06,0));
-    pts.push(new THREE.Vector2(FL_R,0));
-    pts.push(new THREE.Vector2(FL_R,FL_BAND));
-    // concave waist
-    const steps=10;
-    for(let i=0;i<=steps;i++){
-      const t=i/steps;
-      const y=FL_BAND+t*(SP_H-2*FL_BAND);
-      const curve=Math.sin(t*Math.PI);            // 0..1..0
-      const r=FL_R-(FL_R-WA_R)*curve;
-      pts.push(new THREE.Vector2(r,y));
-    }
-    pts.push(new THREE.Vector2(FL_R,SP_H-FL_BAND));
-    pts.push(new THREE.Vector2(FL_R,SP_H));
-    pts.push(new THREE.Vector2(0.06,SP_H));
+  // ---------- setting: floor + back wall ----------
+  const floorMat=new THREE.MeshStandardMaterial({color:0xC9B48F,roughness:0.97});
+  const floor=new THREE.Mesh(new THREE.PlaneGeometry(60,60),floorMat);
+  floor.rotation.x=-Math.PI/2; floor.receiveShadow=true; scene.add(floor);
+  const rug=new THREE.Mesh(new THREE.PlaneGeometry(9,6),new THREE.MeshStandardMaterial({color:0xB79A6E,roughness:1}));
+  rug.rotation.x=-Math.PI/2; rug.position.set(0,0.01,0.4); rug.receiveShadow=true; scene.add(rug);
+  const wall=new THREE.Mesh(new THREE.PlaneGeometry(60,24),new THREE.MeshStandardMaterial({color:0xD8CCB3,roughness:1}));
+  wall.position.set(0,12,-9); wall.receiveShadow=true; scene.add(wall);
+
+  // ---------- screen parameters (small modules, many of them) ----------
+  const COLS=14, ROWS=9, SP_H=0.42, COL_GAP=0.40, FL_R=0.19, WA_R=0.085;
+  const WIDTH=(COLS-1)*COL_GAP, HEIGHT=ROWS*SP_H;
+  const BASE_Y=0.62;                 // bottom of first spool
+  const MAXOFF=SP_H*0.5;             // half-module stagger at full privacy
+
+  // spool as a hollow lathe (bore visible so water can pass through)
+  function profile(){
+    const innerR=0.055, R=FL_R, w=WA_R, H=SP_H, fb=0.09, pts=[];
+    pts.push(new THREE.Vector2(innerR,0)); pts.push(new THREE.Vector2(R,0)); pts.push(new THREE.Vector2(R,fb));
+    for(let i=0;i<=8;i++){const t=i/8;const y=fb+t*(H-2*fb);const c=Math.sin(t*Math.PI);pts.push(new THREE.Vector2(R-(R-w)*c,y));}
+    pts.push(new THREE.Vector2(R,H-fb)); pts.push(new THREE.Vector2(R,H)); pts.push(new THREE.Vector2(innerR,H));
     return pts;
   }
-  const spoolGeo=new THREE.LatheGeometry(spoolProfile(),40);
-  spoolGeo.translate(0,-SP_H/2,0);
-  const spoolMat=new THREE.MeshStandardMaterial({roughness:0.9,metalness:0.0,vertexColors:false});
+  const spoolGeo=new THREE.LatheGeometry(profile(),30); spoolGeo.translate(0,-SP_H/2,0);
+  const spoolMat=new THREE.MeshStandardMaterial({color:0xC06B3C,roughness:0.92,metalness:0,side:THREE.DoubleSide});
+  const COUNT=COLS*ROWS;
+  const spools=new THREE.InstancedMesh(spoolGeo,spoolMat,COUNT);
+  spools.castShadow=true; spools.receiveShadow=true;
+  scene.add(spools);
+  // per-instance handmade colour variation
+  const baseCol=new THREE.Color(0xC06B3C), tmpCol=new THREE.Color();
+  for(let i=0;i<COUNT;i++){tmpCol.copy(baseCol).offsetHSL(0,(Math.random()-0.5)*0.05,(Math.random()-0.5)*0.1);spools.setColorAt(i,tmpCol);}
+  const colX=c=> -WIDTH/2 + c*COL_GAP;
+  const yaws=new Float32Array(COUNT); for(let i=0;i<COUNT;i++)yaws[i]=(Math.random()-0.5)*0.14;
 
-  const COL_GAP=FL_R*2*0.96;   // columns nearly touch at flanges
-
-  let group=new THREE.Group();scene.add(group);
-  const state={cols:6,rows:8,offset:0.5,frame:true,cord:true,spin:true};
-
-  function baseColor(){return isDark()?new THREE.Color(0xB85C30):new THREE.Color(0xC06B3C);}
-  function cordColor(){return isDark()?0x8f7b45:0x9a824c;}
-  function woodColor(){return isDark()?0x5a3e27:0x7E5331;}
-
-  function build(){
-    // clear
-    group.traverse(o=>{if(o.geometry&&o!==group)o.geometry.dispose&&null;});
-    scene.remove(group);group=new THREE.Group();scene.add(group);
-
-    const {cols,rows,offset}=state;
-    const width=(cols-1)*COL_GAP;
-    const height=rows*SP_H;
-
-    // spools via InstancedMesh with slight handmade color variation
-    const count=cols*rows;
-    const mat=spoolMat.clone();mat.color=baseColor();
-    const inst=new THREE.InstancedMesh(spoolGeo,mat,count);
-    const m=new THREE.Matrix4();const q=new THREE.Quaternion();
-    const base=baseColor();const col=new THREE.Color();
+  const _m=new THREE.Matrix4(), _q=new THREE.Quaternion(), _p=new THREE.Vector3(), _s=new THREE.Vector3(1,1,1), _up=new THREE.Vector3(0,1,0);
+  function layout(off){
     let i=0;
-    for(let c=0;c<cols;c++){
-      const x=-width/2+c*COL_GAP;
-      const shift=(c%2)?offset*SP_H:0;
-      const colHeight=height; // keep same count; shift wraps visually
-      for(let r=0;r<rows;r++){
-        const y=-height/2+SP_H/2+r*SP_H+shift;
-        // tiny random yaw + scale jitter = handmade
-        const yaw=(Math.random()-0.5)*0.18;
-        q.setFromAxisAngle(new THREE.Vector3(0,1,0),yaw);
-        const s=1+(Math.random()-0.5)*0.05;
-        m.compose(new THREE.Vector3(x,y,0),q,new THREE.Vector3(s,s,s));
-        inst.setMatrixAt(i,m);
-        col.copy(base);
-        const j=(Math.random()-0.5)*0.12;
-        col.offsetHSL(0,(Math.random()-0.5)*0.05,j);
-        inst.setColorAt(i,col);
-        i++;
+    for(let c=0;c<COLS;c++){
+      const x=colX(c), shift=(c%2)?off*MAXOFF:0;
+      for(let r=0;r<ROWS;r++){
+        const y=BASE_Y+SP_H/2+r*SP_H+shift;
+        _q.setFromAxisAngle(_up,yaws[i]); _p.set(x,y,0); _m.compose(_p,_q,_s);
+        spools.setMatrixAt(i++,_m);
       }
     }
-    inst.instanceMatrix.needsUpdate=true;
-    if(inst.instanceColor)inst.instanceColor.needsUpdate=true;
-    group.add(inst);
+    spools.instanceMatrix.needsUpdate=true;
+  }
 
-    // cords
-    if(state.cord){
-      const cmat=new THREE.MeshStandardMaterial({color:cordColor(),roughness:0.95});
-      const cgeo=new THREE.CylinderGeometry(0.035,0.035,height+SP_H*offset+0.4,8);
-      for(let c=0;c<cols;c++){
-        const x=-width/2+c*COL_GAP;
-        const shift=(c%2)?offset*SP_H:0;
-        const cord=new THREE.Mesh(cgeo,cmat);
-        cord.position.set(x,shift/2,0);
-        group.add(cord);
+  // ---------- jute cords (fixed vertical; spools slide along them) ----------
+  const cordMat=new THREE.MeshStandardMaterial({color:0x9A824C,roughness:1});
+  const cordGeo=new THREE.CylinderGeometry(0.014,0.014,HEIGHT+MAXOFF+0.5,6);
+  for(let c=0;c<COLS;c++){const m=new THREE.Mesh(cordGeo,cordMat);m.position.set(colX(c),BASE_Y+HEIGHT/2+0.1,0);m.castShadow=true;scene.add(m);}
+
+  // ---------- timber frame ----------
+  const wood=new THREE.MeshStandardMaterial({color:0xB68A54,roughness:0.75});
+  const woodD=new THREE.MeshStandardMaterial({color:0x8A663B,roughness:0.8});
+  const frame=new THREE.Group(); scene.add(frame);
+  const POSTX=WIDTH/2+0.34, TOP_Y=BASE_Y+HEIGHT+0.18, BOT_Y=BASE_Y-0.14;
+  function box(w,h,d,mat,x,y,z){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;frame.add(m);return m;}
+  const postH=TOP_Y-BOT_Y+0.6;
+  box(0.17,postH,0.17,wood, POSTX,(TOP_Y+BOT_Y)/2+0.1,0);
+  box(0.17,postH,0.17,wood,-POSTX,(TOP_Y+BOT_Y)/2+0.1,0);
+  box(WIDTH+0.95,0.17,0.24,wood,0,TOP_Y,0);          // top batten
+  box(WIDTH+0.95,0.17,0.24,wood,0,BASE_Y-0.02,0);    // bottom batten
+  // feet
+  box(0.5,0.12,0.6,woodD, POSTX,0.06,0); box(0.5,0.12,0.6,woodD,-POSTX,0.06,0);
+
+  // top gutter (feeds water onto the columns)
+  box(WIDTH+0.5,0.14,0.28,woodD,0,TOP_Y+0.2,0.0);
+  // bottom collection trough
+  box(WIDTH+0.7,0.2,0.46,woodD,0,BASE_Y-0.26,0.0);
+
+  // return plumbing up the right post (recirculation)
+  const pipeMat=new THREE.MeshStandardMaterial({color:0x6f563a,roughness:0.6,metalness:0.2});
+  const PIPX=POSTX, PIPZ=0.22;
+  const upPipe=new THREE.Mesh(new THREE.CylinderGeometry(0.06,0.06,(TOP_Y+0.2)-(BASE_Y-0.26),12),pipeMat);
+  upPipe.position.set(PIPX,((TOP_Y+0.2)+(BASE_Y-0.26))/2,PIPZ); upPipe.castShadow=true; frame.add(upPipe);
+  // bottom elbow into trough, top elbow into gutter
+  const elbowB=new THREE.Mesh(new THREE.CylinderGeometry(0.055,0.055,PIPX*0.5,12),pipeMat);
+  elbowB.rotation.z=Math.PI/2; elbowB.position.set(PIPX*0.78,BASE_Y-0.26,PIPZ); frame.add(elbowB);
+  const elbowT=new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.05,PIPX*0.6,12),pipeMat);
+  elbowT.rotation.z=Math.PI/2; elbowT.position.set(PIPX*0.7,TOP_Y+0.2,PIPZ); frame.add(elbowT);
+
+  // pump / motor box with an impeller that spins when running
+  const pumpBox=box(0.42,0.3,0.42,woodD,PIPX,0.18,PIPZ+0.28);
+  pumpBox.material=new THREE.MeshStandardMaterial({color:0x4a4036,roughness:0.5,metalness:0.4});
+  const impeller=new THREE.Mesh(new THREE.CylinderGeometry(0.11,0.11,0.06,16),new THREE.MeshStandardMaterial({color:0x8a8a8a,metalness:0.7,roughness:0.3}));
+  impeller.rotation.x=Math.PI/2; impeller.position.set(PIPX,0.34,PIPZ+0.28); frame.add(impeller);
+
+  // ---------- lever on the left post ----------
+  const leverPivot=new THREE.Group(); leverPivot.position.set(-POSTX+0.02,2.25,0.2); frame.add(leverPivot);
+  const bracket=new THREE.Mesh(new THREE.BoxGeometry(0.12,0.12,0.12),woodD); leverPivot.add(bracket);
+  const handle=new THREE.Mesh(new THREE.CylinderGeometry(0.035,0.035,0.62,10),new THREE.MeshStandardMaterial({color:0x5a4631,roughness:0.6}));
+  handle.position.set(-0.05,0.26,0.1); leverPivot.add(handle);
+  const knob=new THREE.Mesh(new THREE.SphereGeometry(0.075,16,16),new THREE.MeshStandardMaterial({color:0xC06B3C,roughness:0.5}));
+  knob.position.set(-0.11,0.54,0.14); leverPivot.add(knob);
+  const LEVER_OPEN=0.55, LEVER_PULL=-0.5;   // z-rotation of the pivot
+  leverPivot.rotation.z=LEVER_OPEN;
+
+  // ---------- water droplets (visible only when pump runs) ----------
+  const waterGroup=new THREE.Group(); waterGroup.visible=false; scene.add(waterGroup);
+  const dropGeo=new THREE.SphereGeometry(0.036,10,10);
+  const dropMat=new THREE.MeshStandardMaterial({color:0x3f9bd0,roughness:0.2,metalness:0.1,emissive:0x0e354a,emissiveIntensity:0.6});
+  const GUT_Y=TOP_Y+0.14, TRO_Y=BASE_Y-0.22, FRONT_Z=0.13;
+  const drops=[];
+  function addDrop(type,x,y){const z=type==='rise'?PIPZ:(type==='top'?0.15:FRONT_Z);const d=new THREE.Mesh(dropGeo,dropMat);d.position.set(x,y,z);d.userData={type};waterGroup.add(d);drops.push(d);}
+  for(let c=0;c<COLS;c++){addDrop('fall',colX(c),GUT_Y-Math.random()*HEIGHT);addDrop('fall',colX(c),GUT_Y-Math.random()*HEIGHT);} // two per column, down the front
+  for(let k=0;k<7;k++){addDrop('rise',PIPX,TRO_Y+Math.random()*(GUT_Y-TRO_Y));}   // up the return pipe
+  for(let k=0;k<7;k++){addDrop('top',(WIDTH/2)-Math.random()*WIDTH,GUT_Y);}        // along the gutter
+
+  // water sitting in gutter and trough (shown when pump on)
+  const waterSurf=new THREE.MeshStandardMaterial({color:0x3f9bd0,transparent:true,opacity:0.72,roughness:0.12,metalness:0.2});
+  const gutWater=new THREE.Mesh(new THREE.BoxGeometry(WIDTH+0.4,0.05,0.24),waterSurf); gutWater.position.set(0,GUT_Y,0.1); waterGroup.add(gutWater);
+  const troWater=new THREE.Mesh(new THREE.BoxGeometry(WIDTH+0.55,0.08,0.4),waterSurf); troWater.position.set(0,TRO_Y+0.02,0.1); waterGroup.add(troWater);
+
+  // ---------- state ----------
+  const state={offTarget:0, offCur:0, pump:false};
+  layout(state.offCur);
+
+  // ---------- UI ----------
+  const $=id=>document.getElementById(id);
+  const leverBtn=$('lever'), pumpBtn=$('pump');
+  function setLever(on){state.offTarget=on?1:0;leverBtn.setAttribute('aria-pressed',on);$('leverState').textContent=on?'pulled · private':'released · open';}
+  function setPump(on){state.pump=on;pumpBtn.setAttribute('aria-pressed',on);$('pumpState').textContent=on?'running':'off';waterGroup.visible=on;}
+  leverBtn.addEventListener('click',()=>setLever(leverBtn.getAttribute('aria-pressed')!=='true'));
+  pumpBtn.addEventListener('click',()=>setPump(pumpBtn.getAttribute('aria-pressed')!=='true'));
+  $('reset').addEventListener('click',()=>{camera.position.copy(CAM0);controls.target.copy(TGT0);});
+
+  // click the physical lever to toggle it
+  const ray=new THREE.Raycaster(), ptr=new THREE.Vector2(); let downPos=null;
+  renderer.domElement.addEventListener('pointerdown',e=>downPos={x:e.clientX,y:e.clientY});
+  renderer.domElement.addEventListener('pointerup',e=>{
+    if(!downPos)return; const moved=Math.hypot(e.clientX-downPos.x,e.clientY-downPos.y); downPos=null;
+    if(moved>6)return;
+    const r=renderer.domElement.getBoundingClientRect();
+    ptr.x=((e.clientX-r.left)/r.width)*2-1; ptr.y=-((e.clientY-r.top)/r.height)*2+1;
+    ray.setFromCamera(ptr,camera);
+    if(ray.intersectObjects([handle,knob,bracket],true).length){setLever(leverBtn.getAttribute('aria-pressed')!=='true');}
+  });
+
+  function resize(){const w=stage.clientWidth,h=stage.clientHeight;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();}
+  window.addEventListener('resize',resize); resize();
+
+  const clock=new THREE.Clock();
+  function tick(){
+    requestAnimationFrame(tick);
+    const dt=Math.min(clock.getDelta(),0.05);
+    // lever / offset easing
+    state.offCur+=(state.offTarget-state.offCur)*Math.min(1,dt*6);
+    layout(state.offCur);
+    leverPivot.rotation.z += ((state.offTarget>0.6?LEVER_PULL:LEVER_OPEN)-leverPivot.rotation.z)*Math.min(1,dt*6);
+    backLight.intensity = 0.5*(1-0.55*state.offCur);
+    // water
+    if(state.pump){
+      impeller.rotation.y += dt*9;
+      for(const d of drops){
+        const u=d.userData;
+        if(u.type==='fall'){d.position.y-=dt*2.3; if(d.position.y<TRO_Y){d.position.y=GUT_Y-Math.random()*0.3;}}
+        else if(u.type==='rise'){d.position.y+=dt*2.0; if(d.position.y>GUT_Y){d.position.y=TRO_Y+Math.random()*0.2;}}
+        else{d.position.x-=dt*1.6; if(d.position.x<-WIDTH/2){d.position.x=WIDTH/2;}}
       }
     }
-
-    // frame (how it stands): two posts + top & bottom battens
-    if(state.frame){
-      const wmat=new THREE.MeshStandardMaterial({color:woodColor(),roughness:0.8});
-      const margin=0.45, post=0.22;
-      const totalH=height+SP_H*offset+margin*2;
-      const totalW=width+post*2+margin*2;
-      const postGeo=new THREE.BoxGeometry(post,totalH,post);
-      [-1,1].forEach(sgn=>{
-        const p=new THREE.Mesh(postGeo,wmat);
-        p.position.set(sgn*(width/2+margin+post/2),SP_H*offset/2,0);
-        group.add(p);
-      });
-      const batGeo=new THREE.BoxGeometry(totalW,post,post*1.1);
-      [1,-1].forEach(sgn=>{
-        const b=new THREE.Mesh(batGeo,wmat);
-        b.position.set(0,sgn*(totalH/2)+SP_H*offset/2,0);
-        group.add(b);
-      });
-    }
-
-    // fit camera target to centre
-    controls.target.set(0,0,0);
+    // meters
+    const priv=Math.round((0.2+state.offCur*0.75)*100);
+    const light=Math.round((0.85-state.offCur*0.6)*100);
+    $('privBar').style.width=priv+'%'; $('privV').textContent=priv+'%';
+    $('lightBar').style.width=light+'%'; $('lightV').textContent=light+'%';
+    $('airBar').style.width=(state.pump?70:18)+'%'; $('airV').textContent=state.pump?'cooled':'ambient';
+    controls.update();
+    renderer.render(scene,camera);
   }
-
-  function resize(){
-    const w=stage.clientWidth,h=stage.clientHeight;
-    renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();
-  }
-  window.addEventListener('resize',resize);
-
-  // UI wiring
-  const bind=(id,fmt)=>{const el=document.getElementById(id),v=document.getElementById(id+'V');
-    el.addEventListener('input',()=>{
-      if(id==='offset')state.offset=el.value/100;else state[id]=+el.value;
-      v.textContent=fmt?fmt(el.value):el.value;build();});};
-  bind('cols');bind('rows');bind('offset',x=>x+'%');
-  const tog=(id,key)=>{const b=document.getElementById(id);
-    b.addEventListener('click',()=>{state[key]=!state[key];
-      b.setAttribute('aria-pressed',state[key]);
-      if(key==='spin')controls.autoRotate=state.spin;else build();});};
-  tog('tFrame','frame');tog('tCord','cord');tog('tSpin','spin');
-
-  controls.autoRotate=true;controls.autoRotateSpeed=0.8;
-  matchMedia('(prefers-color-scheme:dark)').addEventListener('change',build);
-
-  resize();build();
-  (function loop(){requestAnimationFrame(loop);controls.update();renderer.render(scene,camera);})();
+  tick();
 })();
 </script>
-
 </body>
 </html>
