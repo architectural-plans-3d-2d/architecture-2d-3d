@@ -18,8 +18,10 @@
   .hint{position:absolute;top:17px;left:50%;transform:translateX(-50%);z-index:5;font-size:11px;color:var(--muted);
     background:rgba(18,14,9,.6);border:1px solid var(--line);border-radius:999px;padding:5px 12px;white-space:nowrap;opacity:0;animation:fade 1.2s 1.4s forwards}
   .card{position:absolute;right:16px;bottom:16px;width:min(300px,calc(100% - 32px));z-index:6;
-    background:rgba(18,14,9,.78);backdrop-filter:blur(7px);border:1px solid var(--line);border-radius:16px;padding:15px 17px;
+    max-height:calc(100% - 32px);overflow-y:auto;-webkit-overflow-scrolling:touch;
+    background:rgba(18,14,9,.82);backdrop-filter:blur(7px);border:1px solid var(--line);border-radius:16px;padding:15px 17px;
     opacity:0;transform:translateY(8px);animation:rise 1s 1.1s forwards}
+  @media (max-width:640px){ .title h1{font-size:16px} .card{left:16px;width:auto;bottom:14px} .hint{font-size:10px} }
   @keyframes rise{to{opacity:1;transform:none}}
   .card h2{margin:0 0 2px;font-size:14px;font-weight:600}
   .card .sub{margin:0 0 13px;font-size:11.5px;color:var(--muted);line-height:1.55}
@@ -72,8 +74,9 @@
   if(!window.THREE){return fail('three.js not available');}
 
   const stage=document.getElementById('stage');
-  const renderer=new THREE.WebGLRenderer({antialias:true});
-  renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+  const isMobile=matchMedia('(max-width:640px)').matches || ('ontouchstart' in window && Math.min(innerWidth,innerHeight)<820);
+  const renderer=new THREE.WebGLRenderer({antialias:!isMobile});
+  renderer.setPixelRatio(Math.min(devicePixelRatio,isMobile?1.5:2));
   renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.PCFSoftShadowMap;
   renderer.outputEncoding=THREE.sRGBEncoding;
   renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=0.92;
@@ -138,7 +141,7 @@
     for(let i=0;i<=8;i++){const t=i/8;const yy=fb+t*(SP_H-2*fb);const c=Math.sin(t*Math.PI);pts.push(new THREE.Vector2(FL_R-(FL_R-WA_R)*c,yy));}
     pts.push(new THREE.Vector2(FL_R,SP_H-fb)); pts.push(new THREE.Vector2(FL_R,SP_H)); pts.push(new THREE.Vector2(IN_R,SP_H)); return pts; }
   const spoolGeo=new THREE.LatheGeometry(profile(),26); spoolGeo.translate(0,-SP_H/2,0);
-  const spoolMat=new THREE.MeshStandardMaterial({color:0xBE5F30,roughness:0.78,metalness:0.0,envMapIntensity:0.3,side:THREE.DoubleSide});
+  const spoolMat=new THREE.MeshPhysicalMaterial({color:0xBE5F30,roughness:0.8,metalness:0.0,clearcoat:0,clearcoatRoughness:0.3,envMapIntensity:0.3,side:THREE.DoubleSide});
   const spools=new THREE.InstancedMesh(spoolGeo,spoolMat,COUNT); spools.castShadow=true; spools.receiveShadow=true; scene.add(spools);
   const baseCol=new THREE.Color(0xC06B3C), tmpCol=new THREE.Color();
   const _m=new THREE.Matrix4(),_q=new THREE.Quaternion(),_p=new THREE.Vector3(),_s=new THREE.Vector3(1,1,1),_up=new THREE.Vector3(0,1,0);
@@ -166,18 +169,30 @@
   const impeller=new THREE.Mesh(new THREE.CylinderGeometry(0.03,0.03,0.02,14),new THREE.MeshStandardMaterial({color:0xb0b0b0,metalness:0.85,roughness:0.22,envMapIntensity:1})); impeller.rotation.x=Math.PI/2; impeller.position.set(POSTX*0.55,0.15,0.14); scene.add(impeller);
   box(0.1,0.05,0.16,new THREE.MeshStandardMaterial({color:0x6b6256,roughness:0.6}),-POSTX*0.55,0.17,0.12);
 
-  // ---------- water (glassy; shown only in cooling mode) ----------
+  // ---------- water (shown only in cooling mode) ----------
   const waterGroup=new THREE.Group(); waterGroup.visible=false; scene.add(waterGroup);
-  const surf=new THREE.MeshPhysicalMaterial({color:0x3aa6d8,transparent:true,opacity:0.8,roughness:0.06,metalness:0,clearcoat:1,clearcoatRoughness:0.12,envMapIntensity:1.2});
+  const FZ=FL_R+0.006, STREAM_TOP=MAN_Y-0.05, STREAM_BOT=RES_Y+0.04;
+  // pooled glassy surfaces: reservoir + top manifold
+  const surf=new THREE.MeshPhysicalMaterial({color:0x2f9bd0,transparent:true,opacity:0.82,roughness:0.05,metalness:0,clearcoat:1,clearcoatRoughness:0.1,envMapIntensity:1.3});
   const resW=new THREE.Mesh(new THREE.BoxGeometry(FRAME_W-0.1,0.05,0.28),surf); resW.position.set(0,RES_Y,0.02); waterGroup.add(resW);
   const manW=new THREE.Mesh(new THREE.BoxGeometry(FRAME_W-0.26,0.02,0.1),surf); manW.position.set(0,MAN_Y-0.03,0.04); waterGroup.add(manW);
-  const dropGeo=new THREE.SphereGeometry(0.0095,10,10);
-  const dropMat=new THREE.MeshStandardMaterial({color:0x8fe0ff,roughness:0.1,metalness:0.1,emissive:0x2aa6e0,emissiveIntensity:2.4});
-  const drops=[]; const FZ=FL_R+0.004;
-  function addDrop(type,x,y){const z=type==='rise'?0.1:(type==='top'?0.06:FZ);const d=new THREE.Mesh(dropGeo,dropMat);d.position.set(x,y,z);d.userData={type};waterGroup.add(d);drops.push(d);}
-  for(let c=0;c<COLS;c++){addDrop('fall',colX(c),MAN_Y-Math.random()*(MAN_Y-RES_Y));addDrop('fall',colX(c),MAN_Y-Math.random()*(MAN_Y-RES_Y));}
-  for(let k=0;k<6;k++){addDrop('rise',POSTX,RES_Y+Math.random()*(MAN_Y-RES_Y));}
-  for(let k=0;k<6;k++){addDrop('top',(WIDTH/2)-Math.random()*WIDTH,MAN_Y-0.04);}
+  // flowing-water texture (scrolls downward to read as motion)
+  const fc=document.createElement('canvas'); fc.width=8; fc.height=64; const fx=fc.getContext('2d');
+  for(let y=0;y<64;y++){const v=0.22+0.78*Math.pow(Math.sin(y/64*Math.PI*4)*0.5+0.5,1.6); fx.fillStyle='rgba(185,238,255,'+v.toFixed(3)+')'; fx.fillRect(0,y,8,1);}
+  const flowTex=new THREE.CanvasTexture(fc); flowTex.wrapS=flowTex.wrapT=THREE.RepeatWrapping; flowTex.repeat.set(1,4);
+  const streamMat=new THREE.MeshStandardMaterial({color:0x2f9bd0,transparent:true,opacity:0.52,roughness:0.08,metalness:0,emissive:0xffffff,emissiveMap:flowTex,emissiveIntensity:0.9,depthWrite:false});
+  const streamGeo=new THREE.CylinderGeometry(0.0065,0.0065,STREAM_TOP-STREAM_BOT,8,1,true);
+  for(let c=0;c<COLS;c++){const s=new THREE.Mesh(streamGeo,streamMat); s.position.set(colX(c),(STREAM_TOP+STREAM_BOT)/2,FZ); waterGroup.add(s);}
+  // elongated droplets running down each strand + up the return pipe
+  const dropGeo=new THREE.SphereGeometry(0.008,10,10); dropGeo.scale(1,1.9,1);
+  const dropMat=new THREE.MeshStandardMaterial({color:0x9fe8ff,roughness:0.08,metalness:0.1,emissive:0x3ab0e6,emissiveIntensity:2.6});
+  const drops=[];
+  function addDrop(type,x,y){const z=type==='rise'?0.1:FZ;const d=new THREE.Mesh(dropGeo,dropMat);d.position.set(x,y,z);d.userData={type,sp:0.5+Math.random()*0.5};waterGroup.add(d);drops.push(d);}
+  const perCol = COLS>18?3:4;
+  for(let c=0;c<COLS;c++){for(let n=0;n<perCol;n++)addDrop('fall',colX(c),STREAM_BOT+Math.random()*(STREAM_TOP-STREAM_BOT));}
+  for(let k=0;k<8;k++){addDrop('rise',POSTX,RES_Y+Math.random()*(MAN_Y-RES_Y));}
+  // wet-clay sheen targets
+  let wetAmt=0;
 
   // ---------- postprocessing: subtle bloom ----------
   let composer=null, bloom=null;
@@ -209,11 +224,13 @@
     if(!controls.enabled){ introT+=dt; const k=ease(Math.min(1,introT/INTRO));
       camera.position.lerpVectors(camStart,CAM0,k); camera.lookAt(TGT0);
       if(introT>=INTRO){controls.enabled=true;controls.target.copy(TGT0);} }
-    if(state.cool){ impeller.rotation.y+=dt*10;
+    // wet-clay sheen eases in with cooling
+    wetAmt+=((state.cool?1:0)-wetAmt)*Math.min(1,dt*3);
+    spoolMat.clearcoat=0.85*wetAmt; spoolMat.roughness=0.8-0.34*wetAmt;
+    if(state.cool){ impeller.rotation.y+=dt*10; flowTex.offset.y-=dt*0.9;
       for(const d of drops){const u=d.userData;
-        if(u.type==='fall'){d.position.y-=dt*0.9; if(d.position.y<RES_Y)d.position.y=MAN_Y-Math.random()*0.06;}
-        else if(u.type==='rise'){d.position.y+=dt*0.8; if(d.position.y>MAN_Y)d.position.y=RES_Y+Math.random()*0.05;}
-        else{d.position.x-=dt*0.6; if(d.position.x<-WIDTH/2)d.position.x=WIDTH/2;} } }
+        if(u.type==='fall'){d.position.y-=dt*u.sp; if(d.position.y<STREAM_BOT)d.position.y=STREAM_TOP-Math.random()*0.05;}
+        else{d.position.y+=dt*0.8; if(d.position.y>MAN_Y)d.position.y=RES_Y+Math.random()*0.05;} } }
     if(controls.enabled)controls.update();
     if(composer)composer.render(dt); else renderer.render(scene,camera);
   }
