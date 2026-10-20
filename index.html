@@ -3,12 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="Interactive 3D model of Woven Earth — a terracotta spool courtyard screen with a working privacy lever and a recirculating evaporative-cooling water system.">
+<meta name="description" content="Interactive 3D model of Woven Earth — a water-cooled terracotta spool screen between a rural courtyard and an interior family lounge, with a recirculating evaporative-cooling water system.">
 <title>Woven Earth — 3D</title>
 <style>
   :root{
-    --panel:#20190f; --panelLine:#3a2f20; --ink:#f3ead9; --muted:#b6a88f; --accent:#c9733f; --water:#3f9bd0;
-    --font:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
+    --panelLine:#3a2f20; --ink:#f3ead9; --muted:#b6a88f; --cool:#2f9bd0; --font:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
   }
   html,body{height:100%}
   body{margin:0;background:#0f0d0a;color:var(--ink);font-family:var(--font);overflow:hidden}
@@ -20,41 +19,37 @@
   .hint{position:absolute;top:16px;left:50%;transform:translateX(-50%);z-index:5;font-size:11px;color:var(--muted);
     background:rgba(20,16,10,.72);border:1px solid var(--panelLine);border-radius:999px;padding:5px 12px;white-space:nowrap}
   .card{position:absolute;right:16px;bottom:16px;width:min(300px,calc(100% - 32px));z-index:6;
-    background:rgba(20,16,10,.82);backdrop-filter:blur(4px);border:1px solid var(--panelLine);border-radius:14px;padding:14px 16px}
+    background:rgba(20,16,10,.84);backdrop-filter:blur(4px);border:1px solid var(--panelLine);border-radius:14px;padding:14px 16px}
   .card h2{margin:0 0 2px;font-size:14px;font-weight:600}
   .card .sub{margin:0 0 12px;font-size:11.5px;color:var(--muted);line-height:1.5}
   .btn{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;font-family:inherit;font-size:13px;
-    cursor:pointer;padding:9px 12px;border-radius:10px;border:1px solid var(--panelLine);background:transparent;color:var(--ink);
-    transition:.15s;margin-top:8px}
+    cursor:pointer;padding:10px 12px;border-radius:10px;border:1px solid var(--panelLine);background:transparent;color:var(--ink);transition:.15s}
   .btn:hover{border-color:#5a4a33}
   .btn .state{font-size:11px;color:var(--muted)}
-  .btn[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:#1a1008}
-  .btn[aria-pressed=true] .state{color:#3a2206}
-  .btn.water[aria-pressed=true]{background:var(--water);border-color:var(--water);color:#06222f}
-  .btn.water[aria-pressed=true] .state{color:#063040}
-  .meters{margin-top:12px;display:flex;flex-direction:column;gap:7px}
+  .btn.cool[aria-pressed=true]{background:var(--cool);border-color:var(--cool);color:#06222f}
+  .btn.cool[aria-pressed=true] .state{color:#063040}
+  .meters{margin-top:12px}
   .meter{font-size:11px;color:var(--muted)}
   .meter .row{display:flex;justify-content:space-between;margin-bottom:3px}
   .bar{height:6px;border-radius:4px;background:#2a2114;overflow:hidden}
-  .bar i{display:block;height:100%;width:0;border-radius:4px;transition:width .25s}
-  .ghost{margin-top:10px;font-size:11px;color:var(--muted);text-align:center;cursor:pointer;text-decoration:underline;text-underline-offset:2px}
+  .bar i{display:block;height:100%;width:18%;border-radius:4px;background:var(--cool);transition:width .3s}
+  .dims{margin-top:12px;font-size:10.5px;color:var(--muted);line-height:1.5;border-top:1px solid var(--panelLine);padding-top:9px}
+  .ghost{margin-top:9px;font-size:11px;color:var(--muted);text-align:center;cursor:pointer;text-decoration:underline;text-underline-offset:2px}
   #err{position:absolute;inset:0;display:none;place-items:center;z-index:9;background:#140f0a;color:#f0a;font:13px/1.5 monospace;padding:24px;text-align:center}
 </style>
 </head>
 <body>
 <div id="stage"></div>
-<div class="title"><h1>Woven Earth</h1><p>terracotta courtyard screen · privacy lever + cooling water loop</p></div>
-<div class="hint">drag to orbit · scroll to zoom · click the lever on the frame</div>
+<div class="title"><h1>Woven Earth</h1><p>the breathing screen · evaporative-cooling courtyard partition</p></div>
+<div class="hint">drag to orbit · scroll to zoom</div>
 <div class="card">
   <h2>Controls</h2>
-  <p class="sub">Pull the lever to stagger the spools (more privacy, less light). Run the pump to circulate water through the hollow spools and cool the air.</p>
-  <button class="btn" id="lever" aria-pressed="false">Privacy lever <span class="state" id="leverState">released · open</span></button>
-  <button class="btn water" id="pump" aria-pressed="false">Water pump <span class="state" id="pumpState">off</span></button>
+  <p class="sub">A screen between the courtyard and an interior family lounge. In cooling mode a concealed pump recirculates water down the hollow spools; the wet clay cools the air crossing the screen.</p>
+  <button class="btn cool" id="mode" aria-pressed="false">Cooling mode <span class="state" id="modeState">off · dry screen</span></button>
   <div class="meters">
-    <div class="meter"><div class="row"><span>Privacy</span><span id="privV">20%</span></div><div class="bar"><i id="privBar" style="background:var(--accent)"></i></div></div>
-    <div class="meter"><div class="row"><span>Daylight through</span><span id="lightV">80%</span></div><div class="bar"><i id="lightBar" style="background:#e7c15a"></i></div></div>
-    <div class="meter"><div class="row"><span>Air</span><span id="airV">ambient</span></div><div class="bar"><i id="airBar" style="background:var(--water)"></i></div></div>
+    <div class="meter"><div class="row"><span>Air crossing the screen</span><span id="airV">ambient</span></div><div class="bar"><i id="airBar"></i></div></div>
   </div>
+  <div class="dims" id="dims">frame — · spool 70 mm · gaps ~10 mm</div>
   <div class="ghost" id="reset">reset view</div>
 </div>
 <div id="err"></div>
@@ -76,171 +71,142 @@
 
   const scene=new THREE.Scene();
   scene.background=new THREE.Color(0xE7DDC8);
-  scene.fog=new THREE.Fog(0xE7DDC8, 22, 46);
+  scene.fog=new THREE.Fog(0xE7DDC8, 7, 16);
 
-  const camera=new THREE.PerspectiveCamera(42,1,0.1,120);
-  const CAM0=new THREE.Vector3(6.2,3.4,8.6), TGT0=new THREE.Vector3(0,2.1,0);
+  const camera=new THREE.PerspectiveCamera(42,1,0.05,60);
+  const CAM0=new THREE.Vector3(1.9,1.35,2.7), TGT0=new THREE.Vector3(0,1.0,0);
   camera.position.copy(CAM0);
 
   const controls=new THREE.OrbitControls(camera,renderer.domElement);
   controls.enableDamping=true; controls.dampingFactor=0.08;
   controls.autoRotate=false;                 // never revolves on its own
-  controls.minDistance=5; controls.maxDistance=24;
-  controls.maxPolarAngle=Math.PI*0.5;        // stay above the floor
+  controls.minDistance=1.4; controls.maxDistance=8;
+  controls.maxPolarAngle=Math.PI*0.5;
   controls.target.copy(TGT0);
 
   // ---------- lights ----------
-  scene.add(new THREE.HemisphereLight(0xfff3e0,0x4b3b2a,0.75));
+  scene.add(new THREE.HemisphereLight(0xfff3e0,0x4b3b2a,0.8));
   const sun=new THREE.DirectionalLight(0xfff1dc,1.05);
-  sun.position.set(7,11,6); sun.castShadow=true;
-  sun.shadow.mapSize.set(2048,2048);
-  const sc=sun.shadow.camera; sc.near=1; sc.far=40; sc.left=-9; sc.right=9; sc.top=9; sc.bottom=-9;
-  sun.shadow.bias=-0.0004;
+  sun.position.set(3,5,3); sun.castShadow=true; sun.shadow.mapSize.set(2048,2048);
+  const sc=sun.shadow.camera; sc.near=0.5; sc.far=18; sc.left=-1.8; sc.right=1.8; sc.top=2.5; sc.bottom=-0.3; sun.shadow.bias=-0.0004;
   scene.add(sun);
-  // daylight coming through the screen from behind (dims a little as privacy rises)
-  const backLight=new THREE.DirectionalLight(0xfde9c8,0.5);
-  backLight.position.set(-2,4,-8); scene.add(backLight);
+  const backLight=new THREE.DirectionalLight(0xfde9c8,0.45); backLight.position.set(-1.5,2.5,-4); scene.add(backLight);
 
-  // ---------- setting: floor + back wall ----------
-  const floorMat=new THREE.MeshStandardMaterial({color:0xC9B48F,roughness:0.97});
-  const floor=new THREE.Mesh(new THREE.PlaneGeometry(60,60),floorMat);
+  // ---------- setting: floor, courtyard wall (back), interior marker ----------
+  const floor=new THREE.Mesh(new THREE.PlaneGeometry(40,40),new THREE.MeshStandardMaterial({color:0xC9B48F,roughness:0.97}));
   floor.rotation.x=-Math.PI/2; floor.receiveShadow=true; scene.add(floor);
-  const rug=new THREE.Mesh(new THREE.PlaneGeometry(9,6),new THREE.MeshStandardMaterial({color:0xB79A6E,roughness:1}));
-  rug.rotation.x=-Math.PI/2; rug.position.set(0,0.01,0.4); rug.receiveShadow=true; scene.add(rug);
-  const wall=new THREE.Mesh(new THREE.PlaneGeometry(60,24),new THREE.MeshStandardMaterial({color:0xD8CCB3,roughness:1}));
-  wall.position.set(0,12,-9); wall.receiveShadow=true; scene.add(wall);
+  const rug=new THREE.Mesh(new THREE.PlaneGeometry(2.6,1.9),new THREE.MeshStandardMaterial({color:0xB79A6E,roughness:1}));
+  rug.rotation.x=-Math.PI/2; rug.position.set(0,0.004,0.45); rug.receiveShadow=true; scene.add(rug);
+  const wall=new THREE.Mesh(new THREE.PlaneGeometry(40,14),new THREE.MeshStandardMaterial({color:0xD8CCB3,roughness:1}));
+  wall.position.set(0,7,-2.4); wall.receiveShadow=true; scene.add(wall);
+  // interior family-lounge hint: a low charpai off to the side
+  (function charpai(){
+    const g=new THREE.Group(); const w=new THREE.MeshStandardMaterial({color:0x9c7646,roughness:0.8});
+    const fr=new THREE.Mesh(new THREE.BoxGeometry(0.62,0.05,0.42),w); fr.position.y=0.26; fr.castShadow=true; g.add(fr);
+    [[-0.27,-0.17],[0.27,-0.17],[-0.27,0.17],[0.27,0.17]].forEach(p=>{const l=new THREE.Mesh(new THREE.BoxGeometry(0.05,0.26,0.05),w);l.position.set(p[0],0.13,p[1]);l.castShadow=true;g.add(l);});
+    const web=new THREE.Mesh(new THREE.BoxGeometry(0.54,0.02,0.34),new THREE.MeshStandardMaterial({color:0xC2A86A,roughness:1})); web.position.y=0.29; g.add(web);
+    g.position.set(1.35,0,0.7); g.rotation.y=-0.5; scene.add(g);
+  })();
 
-  // ---------- screen parameters (small modules, many of them) ----------
-  const COLS=14, ROWS=9, SP_H=0.42, COL_GAP=0.40, FL_R=0.19, WA_R=0.085;
-  const WIDTH=(COLS-1)*COL_GAP, HEIGHT=ROWS*SP_H;
-  const BASE_Y=0.62;                 // bottom of first spool
-  const MAXOFF=SP_H*0.5;             // half-module stagger at full privacy
+  // ---------- real-world dimensions (1 unit = 1 metre) ----------
+  const FT=0.3048;
+  const FRAME_H=7*FT;                 // 2.1336 m
+  const FRAME_W=1.60;                 // within the 1.2–1.8 m brief
+  const SP_H=0.070, FL_R=0.025, WA_R=0.0125, IN_R=0.008;  // 70 mm spool, Ø50 belly, Ø25 waist, Ø8 bore
+  const COL_GAP=0.052;
+  const POSTX=FRAME_W/2-0.035, POST=0.07;
+  const MAN_Y=FRAME_H-0.14;           // top distribution manifold
+  const PLINTH_H=0.22, RES_Y=PLINTH_H-0.04;  // reservoir water surface in the plinth
+  const BASE_Y=PLINTH_H+0.10;         // bottom of the first spool
 
-  // spool as a hollow lathe (bore visible so water can pass through)
+  // columns
+  const innerW=2*(POSTX-POST/2)-0.05;
+  const COLS=Math.floor(innerW/COL_GAP)+1;
+  const WIDTH=(COLS-1)*COL_GAP;
+  const colX=c=> -WIDTH/2 + c*COL_GAP;
+
+  // rows: cumulative, tighter at seated eye level, more open above
+  const rowYs=[]; {
+    let y=BASE_Y; const topLimit=MAN_Y-0.08;
+    while(y+SP_H<=topLimit){ rowYs.push(y+SP_H/2);
+      const t=Math.max(0,Math.min(1,(y-1.0)/(topLimit-1.0)));
+      const gap=0.009+t*0.013;         // ~9 mm low, ~22 mm high
+      y+=SP_H+gap;
+    }
+  }
+  const ROWS=rowYs.length, COUNT=COLS*ROWS;
+
+  // ---------- spool: hollow lathe (open bore so water passes through) ----------
   function profile(){
-    const innerR=0.055, R=FL_R, w=WA_R, H=SP_H, fb=0.09, pts=[];
-    pts.push(new THREE.Vector2(innerR,0)); pts.push(new THREE.Vector2(R,0)); pts.push(new THREE.Vector2(R,fb));
-    for(let i=0;i<=8;i++){const t=i/8;const y=fb+t*(H-2*fb);const c=Math.sin(t*Math.PI);pts.push(new THREE.Vector2(R-(R-w)*c,y));}
-    pts.push(new THREE.Vector2(R,H-fb)); pts.push(new THREE.Vector2(R,H)); pts.push(new THREE.Vector2(innerR,H));
+    const fb=0.015, pts=[];
+    pts.push(new THREE.Vector2(IN_R,0)); pts.push(new THREE.Vector2(FL_R,0)); pts.push(new THREE.Vector2(FL_R,fb));
+    for(let i=0;i<=8;i++){const t=i/8;const yy=fb+t*(SP_H-2*fb);const c=Math.sin(t*Math.PI);pts.push(new THREE.Vector2(FL_R-(FL_R-WA_R)*c,yy));}
+    pts.push(new THREE.Vector2(FL_R,SP_H-fb)); pts.push(new THREE.Vector2(FL_R,SP_H)); pts.push(new THREE.Vector2(IN_R,SP_H));
     return pts;
   }
-  const spoolGeo=new THREE.LatheGeometry(profile(),30); spoolGeo.translate(0,-SP_H/2,0);
-  const spoolMat=new THREE.MeshStandardMaterial({color:0xC06B3C,roughness:0.92,metalness:0,side:THREE.DoubleSide});
-  const COUNT=COLS*ROWS;
+  const spoolGeo=new THREE.LatheGeometry(profile(),26); spoolGeo.translate(0,-SP_H/2,0);
+  const spoolMat=new THREE.MeshStandardMaterial({color:0xC06B3C,roughness:0.92,side:THREE.DoubleSide});
   const spools=new THREE.InstancedMesh(spoolGeo,spoolMat,COUNT);
-  spools.castShadow=true; spools.receiveShadow=true;
-  scene.add(spools);
-  // per-instance handmade colour variation
+  spools.castShadow=true; spools.receiveShadow=true; scene.add(spools);
   const baseCol=new THREE.Color(0xC06B3C), tmpCol=new THREE.Color();
-  for(let i=0;i<COUNT;i++){tmpCol.copy(baseCol).offsetHSL(0,(Math.random()-0.5)*0.05,(Math.random()-0.5)*0.1);spools.setColorAt(i,tmpCol);}
-  const colX=c=> -WIDTH/2 + c*COL_GAP;
-  const yaws=new Float32Array(COUNT); for(let i=0;i<COUNT;i++)yaws[i]=(Math.random()-0.5)*0.14;
-
-  const _m=new THREE.Matrix4(), _q=new THREE.Quaternion(), _p=new THREE.Vector3(), _s=new THREE.Vector3(1,1,1), _up=new THREE.Vector3(0,1,0);
-  function layout(off){
-    let i=0;
-    for(let c=0;c<COLS;c++){
-      const x=colX(c), shift=(c%2)?off*MAXOFF:0;
-      for(let r=0;r<ROWS;r++){
-        const y=BASE_Y+SP_H/2+r*SP_H+shift;
-        _q.setFromAxisAngle(_up,yaws[i]); _p.set(x,y,0); _m.compose(_p,_q,_s);
-        spools.setMatrixAt(i++,_m);
-      }
+  const _m=new THREE.Matrix4(),_q=new THREE.Quaternion(),_p=new THREE.Vector3(),_s=new THREE.Vector3(1,1,1),_up=new THREE.Vector3(0,1,0);
+  let i=0;
+  for(let c=0;c<COLS;c++){const x=colX(c);
+    for(let r=0;r<ROWS;r++){
+      _q.setFromAxisAngle(_up,(Math.random()-0.5)*0.12); _p.set(x,rowYs[r],0); _m.compose(_p,_q,_s); spools.setMatrixAt(i,_m);
+      tmpCol.copy(baseCol).offsetHSL(0,(Math.random()-0.5)*0.05,(Math.random()-0.5)*0.1); spools.setColorAt(i,tmpCol); i++;
     }
-    spools.instanceMatrix.needsUpdate=true;
   }
+  spools.instanceMatrix.needsUpdate=true; if(spools.instanceColor)spools.instanceColor.needsUpdate=true;
 
-  // ---------- jute cords (fixed vertical; spools slide along them) ----------
+  // cords (fixed vertical, spools hang on them)
   const cordMat=new THREE.MeshStandardMaterial({color:0x9A824C,roughness:1});
-  const cordGeo=new THREE.CylinderGeometry(0.014,0.014,HEIGHT+MAXOFF+0.5,6);
-  for(let c=0;c<COLS;c++){const m=new THREE.Mesh(cordGeo,cordMat);m.position.set(colX(c),BASE_Y+HEIGHT/2+0.1,0);m.castShadow=true;scene.add(m);}
+  const cordGeo=new THREE.CylinderGeometry(0.004,0.004,rowYs[ROWS-1]-rowYs[0]+SP_H+0.3,6);
+  for(let c=0;c<COLS;c++){const m=new THREE.Mesh(cordGeo,cordMat);m.position.set(colX(c),(rowYs[0]+rowYs[ROWS-1])/2,0);scene.add(m);}
 
-  // ---------- timber frame ----------
+  // ---------- timber frame + concealed plumbing ----------
   const wood=new THREE.MeshStandardMaterial({color:0xB68A54,roughness:0.75});
   const woodD=new THREE.MeshStandardMaterial({color:0x8A663B,roughness:0.8});
-  const frame=new THREE.Group(); scene.add(frame);
-  const POSTX=WIDTH/2+0.34, TOP_Y=BASE_Y+HEIGHT+0.18, BOT_Y=BASE_Y-0.14;
-  function box(w,h,d,mat,x,y,z){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;frame.add(m);return m;}
-  const postH=TOP_Y-BOT_Y+0.6;
-  box(0.17,postH,0.17,wood, POSTX,(TOP_Y+BOT_Y)/2+0.1,0);
-  box(0.17,postH,0.17,wood,-POSTX,(TOP_Y+BOT_Y)/2+0.1,0);
-  box(WIDTH+0.95,0.17,0.24,wood,0,TOP_Y,0);          // top batten
-  box(WIDTH+0.95,0.17,0.24,wood,0,BASE_Y-0.02,0);    // bottom batten
-  // feet
-  box(0.5,0.12,0.6,woodD, POSTX,0.06,0); box(0.5,0.12,0.6,woodD,-POSTX,0.06,0);
-
-  // top gutter (feeds water onto the columns)
-  box(WIDTH+0.5,0.14,0.28,woodD,0,TOP_Y+0.2,0.0);
-  // bottom collection trough
-  box(WIDTH+0.7,0.2,0.46,woodD,0,BASE_Y-0.26,0.0);
-
-  // return plumbing up the right post (recirculation)
+  function box(w,h,d,mat,x,y,z){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;scene.add(m);return m;}
+  box(POST,FRAME_H,POST,wood, POSTX,FRAME_H/2,0);
+  box(POST,FRAME_H,POST,wood,-POSTX,FRAME_H/2,0);
+  box(FRAME_W,0.09,0.2,woodD,0,MAN_Y,0);            // top manifold housing
+  // plinth / concealed reservoir
+  box(FRAME_W,PLINTH_H,0.34,woodD,0,PLINTH_H/2,0);
+  const panel=box(FRAME_W-0.2,PLINTH_H-0.07,0.01,new THREE.MeshStandardMaterial({color:0x2a2018,roughness:0.4,metalness:0.1}),0,PLINTH_H/2,0.175); // inspection panel
+  // riser pipe up the right post (concealed water line)
   const pipeMat=new THREE.MeshStandardMaterial({color:0x6f563a,roughness:0.6,metalness:0.2});
-  const PIPX=POSTX, PIPZ=0.22;
-  const upPipe=new THREE.Mesh(new THREE.CylinderGeometry(0.06,0.06,(TOP_Y+0.2)-(BASE_Y-0.26),12),pipeMat);
-  upPipe.position.set(PIPX,((TOP_Y+0.2)+(BASE_Y-0.26))/2,PIPZ); upPipe.castShadow=true; frame.add(upPipe);
-  // bottom elbow into trough, top elbow into gutter
-  const elbowB=new THREE.Mesh(new THREE.CylinderGeometry(0.055,0.055,PIPX*0.5,12),pipeMat);
-  elbowB.rotation.z=Math.PI/2; elbowB.position.set(PIPX*0.78,BASE_Y-0.26,PIPZ); frame.add(elbowB);
-  const elbowT=new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.05,PIPX*0.6,12),pipeMat);
-  elbowT.rotation.z=Math.PI/2; elbowT.position.set(PIPX*0.7,TOP_Y+0.2,PIPZ); frame.add(elbowT);
+  const riser=new THREE.Mesh(new THREE.CylinderGeometry(0.018,0.018,MAN_Y-RES_Y,12),pipeMat);
+  riser.position.set(POSTX,(MAN_Y+RES_Y)/2,0.1); riser.castShadow=true; scene.add(riser);
+  box(0.09,0.02,0.09,pipeMat,POSTX*0.6,MAN_Y,0.1); // top elbow into manifold
+  // submersible pump + spinning impeller inside the plinth
+  const pump=box(0.1,0.09,0.1,new THREE.MeshStandardMaterial({color:0x4a4036,metalness:0.4,roughness:0.5}),POSTX*0.55,0.09,0.1);
+  const impeller=new THREE.Mesh(new THREE.CylinderGeometry(0.03,0.03,0.02,14),new THREE.MeshStandardMaterial({color:0x9a9a9a,metalness:0.7,roughness:0.3}));
+  impeller.rotation.x=Math.PI/2; impeller.position.set(POSTX*0.55,0.15,0.14); scene.add(impeller);
+  // removable filter near the trough
+  box(0.1,0.05,0.16,new THREE.MeshStandardMaterial({color:0x6b6256,roughness:0.6}),-POSTX*0.55,0.17,0.12);
 
-  // pump / motor box with an impeller that spins when running
-  const pumpBox=box(0.42,0.3,0.42,woodD,PIPX,0.18,PIPZ+0.28);
-  pumpBox.material=new THREE.MeshStandardMaterial({color:0x4a4036,roughness:0.5,metalness:0.4});
-  const impeller=new THREE.Mesh(new THREE.CylinderGeometry(0.11,0.11,0.06,16),new THREE.MeshStandardMaterial({color:0x8a8a8a,metalness:0.7,roughness:0.3}));
-  impeller.rotation.x=Math.PI/2; impeller.position.set(PIPX,0.34,PIPZ+0.28); frame.add(impeller);
-
-  // ---------- lever on the left post ----------
-  const leverPivot=new THREE.Group(); leverPivot.position.set(-POSTX+0.02,2.25,0.2); frame.add(leverPivot);
-  const bracket=new THREE.Mesh(new THREE.BoxGeometry(0.12,0.12,0.12),woodD); leverPivot.add(bracket);
-  const handle=new THREE.Mesh(new THREE.CylinderGeometry(0.035,0.035,0.62,10),new THREE.MeshStandardMaterial({color:0x5a4631,roughness:0.6}));
-  handle.position.set(-0.05,0.26,0.1); leverPivot.add(handle);
-  const knob=new THREE.Mesh(new THREE.SphereGeometry(0.075,16,16),new THREE.MeshStandardMaterial({color:0xC06B3C,roughness:0.5}));
-  knob.position.set(-0.11,0.54,0.14); leverPivot.add(knob);
-  const LEVER_OPEN=0.55, LEVER_PULL=-0.5;   // z-rotation of the pivot
-  leverPivot.rotation.z=LEVER_OPEN;
-
-  // ---------- water droplets (visible only when pump runs) ----------
+  // ---------- water (shown only in cooling mode) ----------
   const waterGroup=new THREE.Group(); waterGroup.visible=false; scene.add(waterGroup);
-  const dropGeo=new THREE.SphereGeometry(0.036,10,10);
-  const dropMat=new THREE.MeshStandardMaterial({color:0x3f9bd0,roughness:0.2,metalness:0.1,emissive:0x0e354a,emissiveIntensity:0.6});
-  const GUT_Y=TOP_Y+0.14, TRO_Y=BASE_Y-0.22, FRONT_Z=0.13;
-  const drops=[];
-  function addDrop(type,x,y){const z=type==='rise'?PIPZ:(type==='top'?0.15:FRONT_Z);const d=new THREE.Mesh(dropGeo,dropMat);d.position.set(x,y,z);d.userData={type};waterGroup.add(d);drops.push(d);}
-  for(let c=0;c<COLS;c++){addDrop('fall',colX(c),GUT_Y-Math.random()*HEIGHT);addDrop('fall',colX(c),GUT_Y-Math.random()*HEIGHT);} // two per column, down the front
-  for(let k=0;k<7;k++){addDrop('rise',PIPX,TRO_Y+Math.random()*(GUT_Y-TRO_Y));}   // up the return pipe
-  for(let k=0;k<7;k++){addDrop('top',(WIDTH/2)-Math.random()*WIDTH,GUT_Y);}        // along the gutter
+  const surf=new THREE.MeshStandardMaterial({color:0x2f9bd0,transparent:true,opacity:0.72,roughness:0.12,metalness:0.2});
+  const resW=new THREE.Mesh(new THREE.BoxGeometry(FRAME_W-0.1,0.05,0.28),surf); resW.position.set(0,RES_Y,0.02); waterGroup.add(resW);
+  const manW=new THREE.Mesh(new THREE.BoxGeometry(FRAME_W-0.26,0.02,0.1),surf); manW.position.set(0,MAN_Y-0.03,0.04); waterGroup.add(manW);
+  const dropGeo=new THREE.SphereGeometry(0.009,8,8);
+  const dropMat=new THREE.MeshStandardMaterial({color:0x3fb0e0,roughness:0.2,emissive:0x0e354a,emissiveIntensity:0.6});
+  const drops=[]; const FZ=FL_R+0.004;  // just in front of the bellies, within the module profile
+  function addDrop(type,x,y){const z=type==='rise'?0.1:(type==='top'?0.06:FZ);const d=new THREE.Mesh(dropGeo,dropMat);d.position.set(x,y,z);d.userData={type};waterGroup.add(d);drops.push(d);}
+  for(let c=0;c<COLS;c++){addDrop('fall',colX(c),MAN_Y-Math.random()*(MAN_Y-RES_Y));addDrop('fall',colX(c),MAN_Y-Math.random()*(MAN_Y-RES_Y));}
+  for(let k=0;k<6;k++){addDrop('rise',POSTX,RES_Y+Math.random()*(MAN_Y-RES_Y));}
+  for(let k=0;k<6;k++){addDrop('top',(WIDTH/2)-Math.random()*WIDTH,MAN_Y-0.04);}
 
-  // water sitting in gutter and trough (shown when pump on)
-  const waterSurf=new THREE.MeshStandardMaterial({color:0x3f9bd0,transparent:true,opacity:0.72,roughness:0.12,metalness:0.2});
-  const gutWater=new THREE.Mesh(new THREE.BoxGeometry(WIDTH+0.4,0.05,0.24),waterSurf); gutWater.position.set(0,GUT_Y,0.1); waterGroup.add(gutWater);
-  const troWater=new THREE.Mesh(new THREE.BoxGeometry(WIDTH+0.55,0.08,0.4),waterSurf); troWater.position.set(0,TRO_Y+0.02,0.1); waterGroup.add(troWater);
-
-  // ---------- state ----------
-  const state={offTarget:0, offCur:0, pump:false};
-  layout(state.offCur);
-
-  // ---------- UI ----------
+  // ---------- state + UI ----------
+  const state={cool:false};
   const $=id=>document.getElementById(id);
-  const leverBtn=$('lever'), pumpBtn=$('pump');
-  function setLever(on){state.offTarget=on?1:0;leverBtn.setAttribute('aria-pressed',on);$('leverState').textContent=on?'pulled · private':'released · open';}
-  function setPump(on){state.pump=on;pumpBtn.setAttribute('aria-pressed',on);$('pumpState').textContent=on?'running':'off';waterGroup.visible=on;}
-  leverBtn.addEventListener('click',()=>setLever(leverBtn.getAttribute('aria-pressed')!=='true'));
-  pumpBtn.addEventListener('click',()=>setPump(pumpBtn.getAttribute('aria-pressed')!=='true'));
+  $('dims').textContent='frame '+(FRAME_H).toFixed(2)+' m (7 ft) × '+(WIDTH+0.14).toFixed(2)+' m · spool 70 mm · '+COLS+'×'+ROWS+' · gaps ~10 mm';
+  const modeBtn=$('mode');
+  function setMode(on){state.cool=on;modeBtn.setAttribute('aria-pressed',on);$('modeState').textContent=on?'running · wetting the clay':'off · dry screen';waterGroup.visible=on;$('airV').textContent=on?'cooled':'ambient';$('airBar').style.width=(on?72:18)+'%';backLight.intensity=0.45;}
+  modeBtn.addEventListener('click',()=>setMode(modeBtn.getAttribute('aria-pressed')!=='true'));
   $('reset').addEventListener('click',()=>{camera.position.copy(CAM0);controls.target.copy(TGT0);});
-
-  // click the physical lever to toggle it
-  const ray=new THREE.Raycaster(), ptr=new THREE.Vector2(); let downPos=null;
-  renderer.domElement.addEventListener('pointerdown',e=>downPos={x:e.clientX,y:e.clientY});
-  renderer.domElement.addEventListener('pointerup',e=>{
-    if(!downPos)return; const moved=Math.hypot(e.clientX-downPos.x,e.clientY-downPos.y); downPos=null;
-    if(moved>6)return;
-    const r=renderer.domElement.getBoundingClientRect();
-    ptr.x=((e.clientX-r.left)/r.width)*2-1; ptr.y=-((e.clientY-r.top)/r.height)*2+1;
-    ray.setFromCamera(ptr,camera);
-    if(ray.intersectObjects([handle,knob,bracket],true).length){setLever(leverBtn.getAttribute('aria-pressed')!=='true');}
-  });
 
   function resize(){const w=stage.clientWidth,h=stage.clientHeight;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();}
   window.addEventListener('resize',resize); resize();
@@ -249,29 +215,15 @@
   function tick(){
     requestAnimationFrame(tick);
     const dt=Math.min(clock.getDelta(),0.05);
-    // lever / offset easing
-    state.offCur+=(state.offTarget-state.offCur)*Math.min(1,dt*6);
-    layout(state.offCur);
-    leverPivot.rotation.z += ((state.offTarget>0.6?LEVER_PULL:LEVER_OPEN)-leverPivot.rotation.z)*Math.min(1,dt*6);
-    backLight.intensity = 0.5*(1-0.55*state.offCur);
-    // water
-    if(state.pump){
-      impeller.rotation.y += dt*9;
-      for(const d of drops){
-        const u=d.userData;
-        if(u.type==='fall'){d.position.y-=dt*2.3; if(d.position.y<TRO_Y){d.position.y=GUT_Y-Math.random()*0.3;}}
-        else if(u.type==='rise'){d.position.y+=dt*2.0; if(d.position.y>GUT_Y){d.position.y=TRO_Y+Math.random()*0.2;}}
-        else{d.position.x-=dt*1.6; if(d.position.x<-WIDTH/2){d.position.x=WIDTH/2;}}
+    if(state.cool){
+      impeller.rotation.y+=dt*10;
+      for(const d of drops){const u=d.userData;
+        if(u.type==='fall'){d.position.y-=dt*0.9; if(d.position.y<RES_Y){d.position.y=MAN_Y-Math.random()*0.06;}}
+        else if(u.type==='rise'){d.position.y+=dt*0.8; if(d.position.y>MAN_Y){d.position.y=RES_Y+Math.random()*0.05;}}
+        else{d.position.x-=dt*0.6; if(d.position.x<-WIDTH/2){d.position.x=WIDTH/2;}}
       }
     }
-    // meters
-    const priv=Math.round((0.2+state.offCur*0.75)*100);
-    const light=Math.round((0.85-state.offCur*0.6)*100);
-    $('privBar').style.width=priv+'%'; $('privV').textContent=priv+'%';
-    $('lightBar').style.width=light+'%'; $('lightV').textContent=light+'%';
-    $('airBar').style.width=(state.pump?70:18)+'%'; $('airV').textContent=state.pump?'cooled':'ambient';
-    controls.update();
-    renderer.render(scene,camera);
+    controls.update(); renderer.render(scene,camera);
   }
   tick();
 })();
