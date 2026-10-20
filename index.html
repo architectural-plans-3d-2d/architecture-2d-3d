@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Interactive 3D model of Woven Earth — a terracotta spool courtyard screen.">
+<title>Woven Earth — 3D</title>
+<style>
+  /* Layout: full-bleed 3D stage with a floating control card, bottom-left on desktop, stacked on phones */
+  :root{
+    --bg:#F3EEE7; --panel:#FBF8F3; --fg:#2B2320; --muted:#7A6E63;
+    --line:#E0D6C8; --accent:#C06B3C; --accent-ink:#8F4A26;
+    --font-ui:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
+  }
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+    --bg:#1A1613; --panel:#241E19; --fg:#EFE7DD; --muted:#AC9E8F;
+    --line:#3A312A; --accent:#D8824E; --accent-ink:#E7A074; color-scheme:dark;
+  }}
+  :root[data-theme="dark"]{
+    --bg:#1A1613; --panel:#241E19; --fg:#EFE7DD; --muted:#AC9E8F;
+    --line:#3A312A; --accent:#D8824E; --accent-ink:#E7A074; color-scheme:dark;
+  }
+  html,body{height:100%}
+  body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--font-ui);overflow:hidden}
+  #stage{position:absolute;inset:0}
+  canvas{display:block;touch-action:none}
+  .card{
+    position:absolute;left:16px;bottom:16px;width:min(300px,calc(100% - 32px));
+    background:var(--panel);border:1px solid var(--line);border-radius:14px;
+    padding:14px 16px;box-sizing:border-box;z-index:5;
+  }
+  .card h1{margin:0 0 2px;font-size:16px;font-weight:500;letter-spacing:.2px}
+  .card p.sub{margin:0 0 12px;font-size:12px;color:var(--muted);line-height:1.5}
+  .row{display:flex;align-items:center;gap:10px;margin:9px 0}
+  .row label{flex:0 0 78px;font-size:12px;color:var(--muted)}
+  .row input[type=range]{flex:1;accent-color:var(--accent);min-width:0}
+  .row .val{flex:0 0 34px;text-align:right;font-size:12px;font-variant-numeric:tabular-nums}
+  .toggles{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+  .toggles button{
+    flex:1;min-width:84px;font-family:inherit;font-size:12px;cursor:pointer;
+    padding:7px 8px;border-radius:9px;border:1px solid var(--line);
+    background:transparent;color:var(--fg);transition:.15s;
+  }
+  .toggles button[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:#fff}
+  .hint{position:absolute;top:16px;left:50%;transform:translateX(-50%);z-index:5;
+    font-size:11px;color:var(--muted);background:var(--panel);
+    border:1px solid var(--line);border-radius:999px;padding:5px 12px;white-space:nowrap}
+</style>
+</head>
+<body>
+
+
+<div id="stage"></div>
+<div class="hint">Drag to orbit · scroll to zoom</div>
+<div class="card">
+  <h1>Terracotta spool screen</h1>
+  <p class="sub">One fired-clay module, threaded on jute and repeated. Turn it around and change the weave.</p>
+  <div class="row"><label for="cols">Columns</label><input id="cols" type="range" min="3" max="9" value="6"><span class="val" id="colsV">6</span></div>
+  <div class="row"><label for="rows">Rows</label><input id="rows" type="range" min="3" max="11" value="8"><span class="val" id="rowsV">8</span></div>
+  <div class="row"><label for="offset">Offset</label><input id="offset" type="range" min="0" max="100" value="50"><span class="val" id="offsetV">50%</span></div>
+  <div class="toggles">
+    <button id="tFrame" aria-pressed="true">Frame</button>
+    <button id="tCord" aria-pressed="true">Cords</button>
+    <button id="tSpin" aria-pressed="true">Auto-spin</button>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+(function(){
+  const stage=document.getElementById('stage');
+  const isDark=()=>{const t=document.documentElement.getAttribute('data-theme');
+    return t?t==='dark':matchMedia('(prefers-color-scheme:dark)').matches;};
+
+  const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});
+  renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+  stage.appendChild(renderer.domElement);
+
+  const scene=new THREE.Scene();
+  const camera=new THREE.PerspectiveCamera(42,1,0.1,100);
+  camera.position.set(5.5,1.5,8.5);
+
+  const controls=new THREE.OrbitControls(camera,renderer.domElement);
+  controls.enableDamping=true;controls.dampingFactor=0.08;
+  controls.minDistance=4;controls.maxDistance=20;
+  controls.maxPolarAngle=Math.PI*0.92;
+
+  // lights
+  const hemi=new THREE.HemisphereLight(0xfff4e6,0x3a2f28,0.85);scene.add(hemi);
+  const key=new THREE.DirectionalLight(0xffffff,0.9);key.position.set(5,9,7);scene.add(key);
+  const fill=new THREE.DirectionalLight(0xffe4c4,0.35);fill.position.set(-6,3,-4);scene.add(fill);
+
+  // ---- geometry: one spool as a solid of revolution (lathe) ----
+  const SP_H=1.0, FL_R=0.42, WA_R=0.19, FL_BAND=0.2;
+  function spoolProfile(){
+    const pts=[];
+    pts.push(new THREE.Vector2(0.06,0));
+    pts.push(new THREE.Vector2(FL_R,0));
+    pts.push(new THREE.Vector2(FL_R,FL_BAND));
+    // concave waist
+    const steps=10;
+    for(let i=0;i<=steps;i++){
+      const t=i/steps;
+      const y=FL_BAND+t*(SP_H-2*FL_BAND);
+      const curve=Math.sin(t*Math.PI);            // 0..1..0
+      const r=FL_R-(FL_R-WA_R)*curve;
+      pts.push(new THREE.Vector2(r,y));
+    }
+    pts.push(new THREE.Vector2(FL_R,SP_H-FL_BAND));
+    pts.push(new THREE.Vector2(FL_R,SP_H));
+    pts.push(new THREE.Vector2(0.06,SP_H));
+    return pts;
+  }
+  const spoolGeo=new THREE.LatheGeometry(spoolProfile(),40);
+  spoolGeo.translate(0,-SP_H/2,0);
+  const spoolMat=new THREE.MeshStandardMaterial({roughness:0.9,metalness:0.0,vertexColors:false});
+
+  const COL_GAP=FL_R*2*0.96;   // columns nearly touch at flanges
+
+  let group=new THREE.Group();scene.add(group);
+  const state={cols:6,rows:8,offset:0.5,frame:true,cord:true,spin:true};
+
+  function baseColor(){return isDark()?new THREE.Color(0xB85C30):new THREE.Color(0xC06B3C);}
+  function cordColor(){return isDark()?0x8f7b45:0x9a824c;}
+  function woodColor(){return isDark()?0x5a3e27:0x7E5331;}
+
+  function build(){
+    // clear
+    group.traverse(o=>{if(o.geometry&&o!==group)o.geometry.dispose&&null;});
+    scene.remove(group);group=new THREE.Group();scene.add(group);
+
+    const {cols,rows,offset}=state;
+    const width=(cols-1)*COL_GAP;
+    const height=rows*SP_H;
+
+    // spools via InstancedMesh with slight handmade color variation
+    const count=cols*rows;
+    const mat=spoolMat.clone();mat.color=baseColor();
+    const inst=new THREE.InstancedMesh(spoolGeo,mat,count);
+    const m=new THREE.Matrix4();const q=new THREE.Quaternion();
+    const base=baseColor();const col=new THREE.Color();
+    let i=0;
+    for(let c=0;c<cols;c++){
+      const x=-width/2+c*COL_GAP;
+      const shift=(c%2)?offset*SP_H:0;
+      const colHeight=height; // keep same count; shift wraps visually
+      for(let r=0;r<rows;r++){
+        const y=-height/2+SP_H/2+r*SP_H+shift;
+        // tiny random yaw + scale jitter = handmade
+        const yaw=(Math.random()-0.5)*0.18;
+        q.setFromAxisAngle(new THREE.Vector3(0,1,0),yaw);
+        const s=1+(Math.random()-0.5)*0.05;
+        m.compose(new THREE.Vector3(x,y,0),q,new THREE.Vector3(s,s,s));
+        inst.setMatrixAt(i,m);
+        col.copy(base);
+        const j=(Math.random()-0.5)*0.12;
+        col.offsetHSL(0,(Math.random()-0.5)*0.05,j);
+        inst.setColorAt(i,col);
+        i++;
+      }
+    }
+    inst.instanceMatrix.needsUpdate=true;
+    if(inst.instanceColor)inst.instanceColor.needsUpdate=true;
+    group.add(inst);
+
+    // cords
+    if(state.cord){
+      const cmat=new THREE.MeshStandardMaterial({color:cordColor(),roughness:0.95});
+      const cgeo=new THREE.CylinderGeometry(0.035,0.035,height+SP_H*offset+0.4,8);
+      for(let c=0;c<cols;c++){
+        const x=-width/2+c*COL_GAP;
+        const shift=(c%2)?offset*SP_H:0;
+        const cord=new THREE.Mesh(cgeo,cmat);
+        cord.position.set(x,shift/2,0);
+        group.add(cord);
+      }
+    }
+
+    // frame (how it stands): two posts + top & bottom battens
+    if(state.frame){
+      const wmat=new THREE.MeshStandardMaterial({color:woodColor(),roughness:0.8});
+      const margin=0.45, post=0.22;
+      const totalH=height+SP_H*offset+margin*2;
+      const totalW=width+post*2+margin*2;
+      const postGeo=new THREE.BoxGeometry(post,totalH,post);
+      [-1,1].forEach(sgn=>{
+        const p=new THREE.Mesh(postGeo,wmat);
+        p.position.set(sgn*(width/2+margin+post/2),SP_H*offset/2,0);
+        group.add(p);
+      });
+      const batGeo=new THREE.BoxGeometry(totalW,post,post*1.1);
+      [1,-1].forEach(sgn=>{
+        const b=new THREE.Mesh(batGeo,wmat);
+        b.position.set(0,sgn*(totalH/2)+SP_H*offset/2,0);
+        group.add(b);
+      });
+    }
+
+    // fit camera target to centre
+    controls.target.set(0,0,0);
+  }
+
+  function resize(){
+    const w=stage.clientWidth,h=stage.clientHeight;
+    renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();
+  }
+  window.addEventListener('resize',resize);
+
+  // UI wiring
+  const bind=(id,fmt)=>{const el=document.getElementById(id),v=document.getElementById(id+'V');
+    el.addEventListener('input',()=>{
+      if(id==='offset')state.offset=el.value/100;else state[id]=+el.value;
+      v.textContent=fmt?fmt(el.value):el.value;build();});};
+  bind('cols');bind('rows');bind('offset',x=>x+'%');
+  const tog=(id,key)=>{const b=document.getElementById(id);
+    b.addEventListener('click',()=>{state[key]=!state[key];
+      b.setAttribute('aria-pressed',state[key]);
+      if(key==='spin')controls.autoRotate=state.spin;else build();});};
+  tog('tFrame','frame');tog('tCord','cord');tog('tSpin','spin');
+
+  controls.autoRotate=true;controls.autoRotateSpeed=0.8;
+  matchMedia('(prefers-color-scheme:dark)').addEventListener('change',build);
+
+  resize();build();
+  (function loop(){requestAnimationFrame(loop);controls.update();renderer.render(scene,camera);})();
+})();
+</script>
+
+</body>
+</html>
