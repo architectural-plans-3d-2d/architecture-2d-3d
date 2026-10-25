@@ -3,239 +3,79 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="Interactive 3D model of Woven Earth — a water-cooled terracotta spool screen between a rural courtyard and an interior family lounge, with a recirculating evaporative-cooling water system.">
-<title>Woven Earth — 3D</title>
+<meta name="description" content="Three interior partition screens, each built from one repeatable module — a study in repetition, rotation and shadow. NCA Interior Design Studio, Assignment 04.">
+<title>Three Screens</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap">
 <style>
-  :root{ --line:#3a2f20; --ink:#f3ead9; --muted:#b6a88f; --cool:#38b6e6; --font:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif; }
-  html,body{height:100%}
-  body{margin:0;background:#0d0b08;color:var(--ink);font-family:var(--font);overflow:hidden}
-  #stage{position:absolute;inset:0}
-  canvas{display:block;touch-action:none}
-  .title{position:absolute;top:15px;left:18px;z-index:5;pointer-events:none;opacity:0;animation:fade 1.2s .6s forwards}
-  .title h1{margin:0;font-size:18px;font-weight:600;letter-spacing:.3px}
-  .title p{margin:3px 0 0;font-size:12px;color:var(--muted)}
-  @keyframes fade{to{opacity:1}}
-  .hint{position:absolute;top:17px;left:50%;transform:translateX(-50%);z-index:5;font-size:11px;color:var(--muted);
-    background:rgba(18,14,9,.6);border:1px solid var(--line);border-radius:999px;padding:5px 12px;white-space:nowrap;opacity:0;animation:fade 1.2s 1.4s forwards}
-  .card{position:absolute;right:16px;bottom:16px;width:min(300px,calc(100% - 32px));z-index:6;
-    max-height:calc(100% - 32px);overflow-y:auto;-webkit-overflow-scrolling:touch;
-    background:rgba(18,14,9,.82);backdrop-filter:blur(7px);border:1px solid var(--line);border-radius:16px;padding:15px 17px;
-    opacity:0;transform:translateY(8px);animation:rise 1s 1.1s forwards}
-  @media (max-width:640px){ .title h1{font-size:16px} .card{left:16px;width:auto;bottom:14px} .hint{font-size:10px} }
-  @keyframes rise{to{opacity:1;transform:none}}
-  .card h2{margin:0 0 2px;font-size:14px;font-weight:600}
-  .card .sub{margin:0 0 13px;font-size:11.5px;color:var(--muted);line-height:1.55}
-  .btn{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;font-family:inherit;font-size:13px;
-    cursor:pointer;padding:11px 13px;border-radius:11px;border:1px solid var(--line);background:rgba(255,255,255,.02);color:var(--ink);transition:.18s}
-  .btn:hover{border-color:#5a4a33;background:rgba(255,255,255,.05)}
-  .btn .state{font-size:11px;color:var(--muted)}
-  .btn.cool[aria-pressed=true]{background:linear-gradient(135deg,#38b6e6,#2b7fb0);border-color:#38b6e6;color:#042430;box-shadow:0 0 24px rgba(56,182,230,.35)}
-  .btn.cool[aria-pressed=true] .state{color:#06303f}
-  .meters{margin-top:13px}
-  .meter{font-size:11px;color:var(--muted)}
-  .meter .row{display:flex;justify-content:space-between;margin-bottom:4px}
-  .bar{height:6px;border-radius:4px;background:#2a2114;overflow:hidden}
-  .bar i{display:block;height:100%;width:18%;border-radius:4px;background:linear-gradient(90deg,#2b7fb0,#38b6e6);transition:width .4s}
-  .dims{margin-top:13px;font-size:10.5px;color:var(--muted);line-height:1.5;border-top:1px solid var(--line);padding-top:10px}
-  .ghost{margin-top:9px;font-size:11px;color:var(--muted);text-align:center;cursor:pointer;text-decoration:underline;text-underline-offset:2px}
-  #err{position:absolute;inset:0;display:none;place-items:center;z-index:9;background:#140f0a;color:#f0a;font:13px/1.5 monospace;padding:24px;text-align:center}
+  :root{ --paper:#ECE7DD; --ink:#2a2219; --muted:#6c6253; --line:#d8d1c3;
+    --f:"Inter",system-ui,-apple-system,sans-serif; --fd:"Fraunces",Georgia,serif; }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--f);line-height:1.6;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1040px;margin:0 auto;padding:56px 22px 70px}
+  .kick{font-size:12px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:#3C56A6}
+  h1{font-family:var(--fd);font-weight:600;font-size:clamp(38px,8vw,64px);line-height:1;margin:.14em 0 .12em;letter-spacing:-.015em}
+  .lede{font-size:clamp(16px,2.4vw,19px);color:var(--muted);max-width:60ch;margin:0 0 6px}
+  .brief{font-size:13.5px;color:var(--muted);max-width:66ch;margin:10px 0 0}
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:40px}
+  @media(max-width:760px){.grid{grid-template-columns:1fr}}
+  .card{display:flex;flex-direction:column;background:#FAF6EE;border:1px solid var(--line);border-radius:16px;overflow:hidden;
+    text-decoration:none;color:inherit;transition:.18s;box-shadow:0 8px 30px rgba(60,45,25,.06)}
+  .card:hover{transform:translateY(-3px);border-color:#c3b79e;box-shadow:0 16px 44px rgba(60,45,25,.12)}
+  .viz{height:150px;display:grid;place-items:center;background:linear-gradient(160deg,#efe9dd,#ddd6c8);border-bottom:1px solid var(--line)}
+  .viz svg{width:100%;height:100%}
+  .in{padding:18px 20px 22px}
+  .tag{font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+  .in h2{font-family:var(--fd);font-weight:600;font-size:24px;margin:5px 0 7px}
+  .in p{font-size:14px;color:var(--muted);margin:0 0 16px;line-height:1.55}
+  .go{font-size:13px;font-weight:600;color:#b06a38}
+  .foot{margin-top:46px;padding-top:18px;border-top:1px solid var(--line);font-size:12px;color:var(--muted)}
 </style>
 </head>
 <body>
-<div id="stage"></div>
-<div class="title"><h1>Woven Earth</h1><p>the breathing screen · evaporative-cooling courtyard partition</p></div>
-<div class="hint">drag to orbit · scroll to zoom</div>
-<div class="card">
-  <h2>Controls</h2>
-  <p class="sub">A screen between the courtyard and an interior family lounge. In cooling mode a concealed pump recirculates water down the hollow spools; the wet clay cools the air crossing the screen.</p>
-  <button class="btn cool" id="mode" aria-pressed="false">Cooling mode <span class="state" id="modeState">off · dry screen</span></button>
-  <div class="meters">
-    <div class="meter"><div class="row"><span>Air crossing the screen</span><span id="airV">ambient</span></div><div class="bar"><i id="airBar"></i></div></div>
+<div class="wrap">
+  <div class="kick">NCA · Interior Design Studio · Assignment 04</div>
+  <h1>Three Screens</h1>
+  <p class="lede">One repeatable module, three ways — each an interior partition that gives privacy, filters light and sets up a rhythm, explored through repetition, rotation and offset.</p>
+  <p class="brief">Pick one to open its live 3D. Drag to orbit (it won't spin on its own), use the sliders to reshape the module and move the sunlight, and watch the shadows and depth change. Works on phone too.</p>
+
+  <div class="grid">
+    <a class="card" href="turn.html">
+      <div class="viz"><svg viewBox="0 0 120 150" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+        <g fill="none" stroke="#b06a38" stroke-width="3" stroke-linecap="round">
+          <path d="M22,18 C34,55 10,95 22,132"/><path d="M42,18 C30,55 54,95 42,132"/>
+          <path d="M62,18 C74,55 50,95 62,132"/><path d="M82,18 C70,55 94,95 82,132"/>
+          <path d="M102,18 C90,55 114,95 102,132" opacity=".6"/>
+        </g></svg></div>
+      <div class="in"><div class="tag">↻ Rotation</div><h2>Turn</h2>
+        <p>One twisted blade, repeated. Open head-on, solid at an angle — privacy that changes as you move, with raked floor shadows.</p>
+        <div class="go">Open in 3D →</div></div>
+    </a>
+
+    <a class="card" href="fold.html">
+      <div class="viz"><svg viewBox="0 0 120 150" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+        <g fill="none" stroke="#b06a38" stroke-width="2.6" stroke-linejoin="round">
+          <path d="M20,40 L40,25 L60,40 L80,25 L100,40"/><path d="M20,70 L40,55 L60,70 L80,55 L100,70"/>
+          <path d="M20,100 L40,85 L60,100 L80,85 L100,100"/><path d="M20,130 L40,115 L60,130 L80,115 L100,130"/>
+        </g></svg></div>
+      <div class="in"><div class="tag">◣ Reflection</div><h2>Fold</h2>
+        <p>One folded diamond plate, tiled into a faceted relief. Sharp triangular highlights and deep shadows; slits let light and air through.</p>
+        <div class="go">Open in 3D →</div></div>
+    </a>
+
+    <a class="card" href="weave.html">
+      <div class="viz"><svg viewBox="0 0 120 150" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+        <g fill="none" stroke="#b06a38" stroke-width="3" stroke-linecap="round">
+          <path d="M20,18 C8,52 32,88 20,132"/><path d="M38,18 C50,52 26,88 38,132"/>
+          <path d="M56,18 C44,52 68,88 56,132"/><path d="M74,18 C86,52 62,88 74,132"/>
+          <path d="M92,18 C80,52 104,88 92,132"/>
+        </g></svg></div>
+      <div class="in"><div class="tag">∿ Repetition</div><h2>Weave</h2>
+        <p>One curved slat, phase-shifted so the curves nest into a flowing ripple. Soft and open from the front, screened from an angle.</p>
+        <div class="go">Open in 3D →</div></div>
+    </a>
   </div>
-  <div class="dims" id="dims">frame — · spool 70 mm · gaps ~10 mm</div>
-  <div class="ghost" id="reset">reset view</div>
+
+  <div class="foot">From module to screen · one unit, repeated · privacy, light and rhythm · built for Assignment 04.</div>
 </div>
-<div id="err"></div>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/environments/RoomEnvironment.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/GammaCorrectionShader.js"></script>
-<script>
-(function(){
-  const errBox=document.getElementById('err');
-  function fail(m){errBox.style.display='grid';errBox.textContent='3D failed to load: '+m;}
-  if(!window.THREE){return fail('three.js not available');}
-
-  const stage=document.getElementById('stage');
-  const isMobile=matchMedia('(max-width:640px)').matches || ('ontouchstart' in window && Math.min(innerWidth,innerHeight)<820);
-  const renderer=new THREE.WebGLRenderer({antialias:!isMobile});
-  renderer.setPixelRatio(Math.min(devicePixelRatio,isMobile?1.5:2));
-  renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.PCFSoftShadowMap;
-  renderer.outputEncoding=THREE.sRGBEncoding;
-  renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=0.92;
-  stage.appendChild(renderer.domElement);
-
-  const scene=new THREE.Scene();
-  // soft warm gradient sky
-  (function(){const c=document.createElement('canvas');c.width=4;c.height=256;const g=c.getContext('2d');
-    const gr=g.createLinearGradient(0,0,0,256);gr.addColorStop(0,'#dccbac');gr.addColorStop(.55,'#ccba96');gr.addColorStop(1,'#b6a37b');
-    g.fillStyle=gr;g.fillRect(0,0,4,256);const t=new THREE.CanvasTexture(c);t.encoding=THREE.sRGBEncoding;scene.background=t;})();
-  scene.fog=new THREE.Fog(0xCCBA96, 7, 20);
-
-  // environment reflections (soft IBL)
-  try{ const pmrem=new THREE.PMREMGenerator(renderer); scene.environment=pmrem.fromScene(new THREE.RoomEnvironment(),0.04).texture; }catch(e){}
-
-  const camera=new THREE.PerspectiveCamera(42,1,0.05,60);
-  const CAM0=new THREE.Vector3(1.9,1.35,2.7), TGT0=new THREE.Vector3(0,1.0,0);
-  const camStart=new THREE.Vector3(3.5,2.5,4.9); camera.position.copy(camStart);
-
-  const controls=new THREE.OrbitControls(camera,renderer.domElement);
-  controls.enableDamping=true; controls.dampingFactor=0.08;
-  controls.autoRotate=false; controls.enabled=false;   // intro first; never auto-spins
-  controls.minDistance=1.4; controls.maxDistance=8; controls.maxPolarAngle=Math.PI*0.5;
-  controls.target.copy(TGT0);
-
-  // ---------- lights ----------
-  scene.add(new THREE.HemisphereLight(0xfff3e0,0x4b3b2a,0.3));
-  const sun=new THREE.DirectionalLight(0xfff0d8,1.15);
-  sun.position.set(3,5,3); sun.castShadow=true; sun.shadow.mapSize.set(2048,2048);
-  const sc=sun.shadow.camera; sc.near=0.5; sc.far=18; sc.left=-1.8; sc.right=1.8; sc.top=2.5; sc.bottom=-0.3; sun.shadow.bias=-0.0004;
-  scene.add(sun);
-  const backLight=new THREE.DirectionalLight(0xfde9c8,0.4); backLight.position.set(-1.5,2.5,-4); scene.add(backLight);
-
-  // ---------- setting ----------
-  const floor=new THREE.Mesh(new THREE.PlaneGeometry(40,40),new THREE.MeshStandardMaterial({color:0xBBA373,roughness:0.98,envMapIntensity:0.25}));
-  floor.rotation.x=-Math.PI/2; floor.receiveShadow=true; scene.add(floor);
-  const rug=new THREE.Mesh(new THREE.PlaneGeometry(2.6,1.9),new THREE.MeshStandardMaterial({color:0xA98C5E,roughness:1,envMapIntensity:0.25}));
-  rug.rotation.x=-Math.PI/2; rug.position.set(0,0.004,0.45); rug.receiveShadow=true; scene.add(rug);
-  const wall=new THREE.Mesh(new THREE.PlaneGeometry(40,14),new THREE.MeshStandardMaterial({color:0xC8BCA3,roughness:1,envMapIntensity:0.25}));
-  wall.position.set(0,7,-2.4); wall.receiveShadow=true; scene.add(wall);
-  (function charpai(){
-    const g=new THREE.Group(); const w=new THREE.MeshStandardMaterial({color:0x9c7646,roughness:0.8});
-    const fr=new THREE.Mesh(new THREE.BoxGeometry(0.62,0.05,0.42),w); fr.position.y=0.26; fr.castShadow=true; g.add(fr);
-    [[-0.27,-0.17],[0.27,-0.17],[-0.27,0.17],[0.27,0.17]].forEach(p=>{const l=new THREE.Mesh(new THREE.BoxGeometry(0.05,0.26,0.05),w);l.position.set(p[0],0.13,p[1]);l.castShadow=true;g.add(l);});
-    const web=new THREE.Mesh(new THREE.BoxGeometry(0.54,0.02,0.34),new THREE.MeshStandardMaterial({color:0xC2A86A,roughness:1})); web.position.y=0.29; g.add(web);
-    g.position.set(1.35,0,0.7); g.rotation.y=-0.5; scene.add(g);
-  })();
-
-  // ---------- real-world dimensions (1 unit = 1 metre) ----------
-  const FT=0.3048, FRAME_H=7*FT, FRAME_W=1.60;
-  const SP_H=0.070, FL_R=0.025, WA_R=0.0125, IN_R=0.008, COL_GAP=0.052;
-  const POSTX=FRAME_W/2-0.035, POST=0.07, MAN_Y=FRAME_H-0.14, PLINTH_H=0.22, RES_Y=PLINTH_H-0.04, BASE_Y=PLINTH_H+0.10;
-  const innerW=2*(POSTX-POST/2)-0.05, COLS=Math.floor(innerW/COL_GAP)+1, WIDTH=(COLS-1)*COL_GAP;
-  const colX=c=> -WIDTH/2 + c*COL_GAP;
-  const rowYs=[]; { let y=BASE_Y; const topLimit=MAN_Y-0.08;
-    while(y+SP_H<=topLimit){ rowYs.push(y+SP_H/2); const t=Math.max(0,Math.min(1,(y-1.0)/(topLimit-1.0))); y+=SP_H+(0.009+t*0.013); } }
-  const ROWS=rowYs.length, COUNT=COLS*ROWS;
-
-  // ---------- spool: hollow lathe ----------
-  function profile(){ const fb=0.015, pts=[];
-    pts.push(new THREE.Vector2(IN_R,0)); pts.push(new THREE.Vector2(FL_R,0)); pts.push(new THREE.Vector2(FL_R,fb));
-    for(let i=0;i<=8;i++){const t=i/8;const yy=fb+t*(SP_H-2*fb);const c=Math.sin(t*Math.PI);pts.push(new THREE.Vector2(FL_R-(FL_R-WA_R)*c,yy));}
-    pts.push(new THREE.Vector2(FL_R,SP_H-fb)); pts.push(new THREE.Vector2(FL_R,SP_H)); pts.push(new THREE.Vector2(IN_R,SP_H)); return pts; }
-  const spoolGeo=new THREE.LatheGeometry(profile(),26); spoolGeo.translate(0,-SP_H/2,0);
-  const spoolMat=new THREE.MeshPhysicalMaterial({color:0xBE5F30,roughness:0.8,metalness:0.0,clearcoat:0,clearcoatRoughness:0.3,envMapIntensity:0.3,side:THREE.DoubleSide});
-  const spools=new THREE.InstancedMesh(spoolGeo,spoolMat,COUNT); spools.castShadow=true; spools.receiveShadow=true; scene.add(spools);
-  const baseCol=new THREE.Color(0xC06B3C), tmpCol=new THREE.Color();
-  const _m=new THREE.Matrix4(),_q=new THREE.Quaternion(),_p=new THREE.Vector3(),_s=new THREE.Vector3(1,1,1),_up=new THREE.Vector3(0,1,0);
-  let i=0; for(let c=0;c<COLS;c++){const x=colX(c);
-    for(let r=0;r<ROWS;r++){ _q.setFromAxisAngle(_up,(Math.random()-0.5)*0.12); _p.set(x,rowYs[r],0); _m.compose(_p,_q,_s); spools.setMatrixAt(i,_m);
-      tmpCol.copy(baseCol).offsetHSL(0,(Math.random()-0.5)*0.05,(Math.random()-0.5)*0.1); spools.setColorAt(i,tmpCol); i++; } }
-  spools.instanceMatrix.needsUpdate=true; if(spools.instanceColor)spools.instanceColor.needsUpdate=true;
-
-  const cordMat=new THREE.MeshStandardMaterial({color:0x9A824C,roughness:1});
-  const cordGeo=new THREE.CylinderGeometry(0.004,0.004,rowYs[ROWS-1]-rowYs[0]+SP_H+0.3,6);
-  for(let c=0;c<COLS;c++){const m=new THREE.Mesh(cordGeo,cordMat);m.position.set(colX(c),(rowYs[0]+rowYs[ROWS-1])/2,0);scene.add(m);}
-
-  // ---------- frame + plumbing ----------
-  const wood=new THREE.MeshStandardMaterial({color:0xB68A54,roughness:0.6,envMapIntensity:0.4});
-  const woodD=new THREE.MeshStandardMaterial({color:0x8A663B,roughness:0.65});
-  function box(w,h,d,mat,x,y,z){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;scene.add(m);return m;}
-  box(POST,FRAME_H,POST,wood, POSTX,FRAME_H/2,0); box(POST,FRAME_H,POST,wood,-POSTX,FRAME_H/2,0);
-  box(FRAME_W,0.09,0.2,woodD,0,MAN_Y,0);
-  box(FRAME_W,PLINTH_H,0.34,woodD,0,PLINTH_H/2,0);
-  box(FRAME_W-0.2,PLINTH_H-0.07,0.01,new THREE.MeshStandardMaterial({color:0x241b12,roughness:0.35,metalness:0.1,envMapIntensity:0.6}),0,PLINTH_H/2,0.175);
-  const pipeMat=new THREE.MeshStandardMaterial({color:0x6f563a,roughness:0.45,metalness:0.35,envMapIntensity:0.7});
-  const riser=new THREE.Mesh(new THREE.CylinderGeometry(0.018,0.018,MAN_Y-RES_Y,14),pipeMat); riser.position.set(POSTX,(MAN_Y+RES_Y)/2,0.1); riser.castShadow=true; scene.add(riser);
-  box(0.09,0.02,0.09,pipeMat,POSTX*0.6,MAN_Y,0.1);
-  box(0.1,0.09,0.1,new THREE.MeshStandardMaterial({color:0x40372e,metalness:0.5,roughness:0.4,envMapIntensity:0.8}),POSTX*0.55,0.09,0.1);
-  const impeller=new THREE.Mesh(new THREE.CylinderGeometry(0.03,0.03,0.02,14),new THREE.MeshStandardMaterial({color:0xb0b0b0,metalness:0.85,roughness:0.22,envMapIntensity:1})); impeller.rotation.x=Math.PI/2; impeller.position.set(POSTX*0.55,0.15,0.14); scene.add(impeller);
-  box(0.1,0.05,0.16,new THREE.MeshStandardMaterial({color:0x6b6256,roughness:0.6}),-POSTX*0.55,0.17,0.12);
-
-  // ---------- water (shown only in cooling mode) ----------
-  const waterGroup=new THREE.Group(); waterGroup.visible=false; scene.add(waterGroup);
-  const FZ=FL_R+0.006, STREAM_TOP=MAN_Y-0.05, STREAM_BOT=RES_Y+0.04;
-  // pooled glassy surfaces: reservoir + top manifold
-  const surf=new THREE.MeshPhysicalMaterial({color:0x2f9bd0,transparent:true,opacity:0.82,roughness:0.05,metalness:0,clearcoat:1,clearcoatRoughness:0.1,envMapIntensity:1.3});
-  const resW=new THREE.Mesh(new THREE.BoxGeometry(FRAME_W-0.1,0.05,0.28),surf); resW.position.set(0,RES_Y,0.02); waterGroup.add(resW);
-  const manW=new THREE.Mesh(new THREE.BoxGeometry(FRAME_W-0.26,0.02,0.1),surf); manW.position.set(0,MAN_Y-0.03,0.04); waterGroup.add(manW);
-  // flowing-water texture (scrolls downward to read as motion)
-  const fc=document.createElement('canvas'); fc.width=8; fc.height=64; const fx=fc.getContext('2d');
-  for(let y=0;y<64;y++){const v=0.22+0.78*Math.pow(Math.sin(y/64*Math.PI*4)*0.5+0.5,1.6); fx.fillStyle='rgba(185,238,255,'+v.toFixed(3)+')'; fx.fillRect(0,y,8,1);}
-  const flowTex=new THREE.CanvasTexture(fc); flowTex.wrapS=flowTex.wrapT=THREE.RepeatWrapping; flowTex.repeat.set(1,4);
-  const streamMat=new THREE.MeshStandardMaterial({color:0x2f9bd0,transparent:true,opacity:0.52,roughness:0.08,metalness:0,emissive:0xffffff,emissiveMap:flowTex,emissiveIntensity:0.9,depthWrite:false});
-  const streamGeo=new THREE.CylinderGeometry(0.0065,0.0065,STREAM_TOP-STREAM_BOT,8,1,true);
-  for(let c=0;c<COLS;c++){const s=new THREE.Mesh(streamGeo,streamMat); s.position.set(colX(c),(STREAM_TOP+STREAM_BOT)/2,FZ); waterGroup.add(s);}
-  // elongated droplets running down each strand + up the return pipe
-  const dropGeo=new THREE.SphereGeometry(0.008,10,10); dropGeo.scale(1,1.9,1);
-  const dropMat=new THREE.MeshStandardMaterial({color:0x9fe8ff,roughness:0.08,metalness:0.1,emissive:0x3ab0e6,emissiveIntensity:2.6});
-  const drops=[];
-  function addDrop(type,x,y){const z=type==='rise'?0.1:FZ;const d=new THREE.Mesh(dropGeo,dropMat);d.position.set(x,y,z);d.userData={type,sp:0.5+Math.random()*0.5};waterGroup.add(d);drops.push(d);}
-  const perCol = COLS>18?3:4;
-  for(let c=0;c<COLS;c++){for(let n=0;n<perCol;n++)addDrop('fall',colX(c),STREAM_BOT+Math.random()*(STREAM_TOP-STREAM_BOT));}
-  for(let k=0;k<8;k++){addDrop('rise',POSTX,RES_Y+Math.random()*(MAN_Y-RES_Y));}
-  // wet-clay sheen targets
-  let wetAmt=0;
-
-  // ---------- postprocessing: subtle bloom ----------
-  let composer=null, bloom=null;
-  try{
-    composer=new THREE.EffectComposer(renderer);
-    composer.addPass(new THREE.RenderPass(scene,camera));
-    bloom=new THREE.UnrealBloomPass(new THREE.Vector2(1,1),0.65,0.5,0.92);
-    composer.addPass(bloom);
-    composer.addPass(new THREE.ShaderPass(THREE.GammaCorrectionShader)); // linear -> sRGB
-  }catch(e){ composer=null; }
-
-  // ---------- UI ----------
-  const state={cool:false}; const $=id=>document.getElementById(id);
-  $('dims').textContent='frame '+(FRAME_H).toFixed(2)+' m (7 ft) × '+(WIDTH+0.14).toFixed(2)+' m · spool 70 mm · '+COLS+'×'+ROWS+' · gaps ~10 mm';
-  const modeBtn=$('mode');
-  function setMode(on){state.cool=on;modeBtn.setAttribute('aria-pressed',on);$('modeState').textContent=on?'running · wetting the clay':'off · dry screen';waterGroup.visible=on;$('airV').textContent=on?'cooled':'ambient';$('airBar').style.width=(on?72:18)+'%';}
-  modeBtn.addEventListener('click',()=>setMode(modeBtn.getAttribute('aria-pressed')!=='true'));
-  $('reset').addEventListener('click',()=>{controls.enabled=false;introT=0;camStart.copy(camera.position);});
-
-  function resize(){const w=stage.clientWidth,h=stage.clientHeight;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();if(composer)composer.setSize(w,h);}
-  window.addEventListener('resize',resize); resize();
-
-  // ---------- loop with cinematic intro ----------
-  const clock=new THREE.Clock(); let introT=0; const INTRO=1.9;
-  const ease=x=>1-Math.pow(1-x,3);
-  function tick(){
-    requestAnimationFrame(tick);
-    const dt=Math.min(clock.getDelta(),0.05);
-    if(!controls.enabled){ introT+=dt; const k=ease(Math.min(1,introT/INTRO));
-      camera.position.lerpVectors(camStart,CAM0,k); camera.lookAt(TGT0);
-      if(introT>=INTRO){controls.enabled=true;controls.target.copy(TGT0);} }
-    // wet-clay sheen eases in with cooling
-    wetAmt+=((state.cool?1:0)-wetAmt)*Math.min(1,dt*3);
-    spoolMat.clearcoat=0.85*wetAmt; spoolMat.roughness=0.8-0.34*wetAmt;
-    if(state.cool){ impeller.rotation.y+=dt*10; flowTex.offset.y-=dt*0.9;
-      for(const d of drops){const u=d.userData;
-        if(u.type==='fall'){d.position.y-=dt*u.sp; if(d.position.y<STREAM_BOT)d.position.y=STREAM_TOP-Math.random()*0.05;}
-        else{d.position.y+=dt*0.8; if(d.position.y>MAN_Y)d.position.y=RES_Y+Math.random()*0.05;} } }
-    if(controls.enabled)controls.update();
-    if(composer)composer.render(dt); else renderer.render(scene,camera);
-  }
-  tick();
-})();
-</script>
 </body>
 </html>
